@@ -22,20 +22,22 @@ resource "aws_iam_role_policy_attachment" "test_lambda_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# // THIS WILL NEED TO BE MORE GRANULAR WE NEED ACCESS TO SECRETS MANAGER DB_CREDENTIALS & rds-data:ExecuteStatement
-# resource "aws_iam_role_policy_attachment" "test_lambda_policy_2" {
-#   role       = aws_iam_role.test_lambda_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonRDSDataFullAccess"
-# }
+# // THIS WILL NEED TO BE MORE GRANULAR WE NEED ACCESS TO SECRETS MANAGER DB_CREDENTIALS
+resource "aws_iam_role_policy_attachment" "test_lambda_policy_2" {
+  role       = aws_iam_role.test_lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+}
 
 resource "aws_lambda_function" "this" {
   function_name = "${var.app-name}-${var.env}-test"
 
-  s3_bucket = aws_s3_bucket.lamda-bucket.id
+  s3_bucket = aws_s3_bucket.lambda.id
   s3_key    = aws_s3_object.lambda_test.key
 
-  runtime = "nodejs16.x"
-  handler = "function.handler"
+  runtime = "nodejs20.x"
+  handler = "index.handler"
+
+  timeout = 15
 
   source_code_hash = data.archive_file.lambda_test.output_base64sha256
 
@@ -53,11 +55,11 @@ data "archive_file" "lambda_test" {
   type = "zip"
 
   source_dir  = "../../backend/test"
-  output_path = "../../backend/compiled/test.zip"
+  output_path = "../../backend/compiled-functions/test.zip"
 }
 
 resource "aws_s3_object" "lambda_test" {
-  bucket = aws_s3_bucket.lamda-bucket.id
+  bucket = aws_s3_bucket.lambda.id
 
   key    = "test.zip"
   source = data.archive_file.lambda_test.output_path

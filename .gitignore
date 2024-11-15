@@ -1,3 +1,7 @@
+# Extra
+compiled-functions
+.terraform
+
 # Logs
 logs
 *.log
