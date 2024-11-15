@@ -1,0 +1,68 @@
+.mdx {
+  p, h1, h2, h3, h4, h5, h6, li, ul, ol, table {
+    font-family: var(--primary-font);
+    font-weight: 500;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+  }
+
+  h6 {
+    font-size: 3em;
+  }
+
+  a {
+    font-family: var(--primary-font);
+    font-weight: 500;
+    color: var(--color-text-on-primary);
+    background-color: var(--color-primary);
+    padding: 0 var(--spacing-xsm);
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  p {
+    margin: var(--spacing-sm) 0;
+  }
+
+  li {
+    margin: var(--spacing-sm) var(--spacing-md);
+  }
+
+  hr {
+    outline: none;
+    border: none;
+    height: 2px;
+    background-color: var(--color-grey-light);
+    margin: var(--spacing-md) 0;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-family: var(--accent-font);
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+  }
+
+  pre {
+    background-color: var(--color-grey);
+  }
+
+  .contains-task-list {
+    list-style: none;
+      ul, li {
+      list-style: none;
+    }
+  }
+}
