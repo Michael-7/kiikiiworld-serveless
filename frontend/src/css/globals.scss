@@ -27,7 +27,15 @@
   // --primary-font --> Are avaliable through dynamic font loader
   // --accent-font --> Are avaliable through dynamic font loader
 
+  --border-radius: .25rem;
+
   --font-size-sm: .85rem;
+
+  --font-bold: 600;
+  --font-thin: 300;
+
+  /* Cubic-Bezier */
+  --ease-out: cubic-bezier(0, 0.7, 0.4, 1);
 }
 
 @media (prefers-color-scheme: dark) {

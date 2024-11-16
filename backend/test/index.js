@@ -52,6 +52,9 @@ async function getPostByType(type) {
 function transformPost(post) {
   const parsedPost = JSON.parse(post);
 
+  // content is all properties except date, id and type.
+  const { date, id, type, ...postContent } = parsedPost;
+
   const sendPost = {
     DateId: {
       S: `${parsedPost.date}__${parsedPost.id}`,
@@ -63,7 +66,7 @@ function transformPost(post) {
       S: parsedPost.date.slice(0, 7),
     },
     Content: {
-      S: JSON.stringify(parsedPost.content),
+      S: JSON.stringify(postContent),
     },
   };
 

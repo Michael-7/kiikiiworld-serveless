@@ -1,6 +1,14 @@
 resource "aws_apigatewayv2_api" "this" {
   name          = var.app-name
   protocol_type = "HTTP"
+
+  // TODO: Lock this down when i have a url
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["POST", "GET", "OPTIONS"]
+    allow_headers = ["content-type"]
+    max_age = 300
+  }
 }
 
 resource "aws_apigatewayv2_stage" "live" {

@@ -1,27 +1,43 @@
 import Nav from "@/components/nav/nav";
+import { PostTypeKey, PostTypes } from "@/types/post";
 import Head from "next/head";
-import { FormEvent } from "react";
+import { FormEvent, useEffect } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+
+// https://react-hook-form.com/get-started
+
+type Inputs = {
+  id: string;
+  type: string;
+  date: string;
+  title: string;
+  body: string;
+  videoUrl: string;
+  image: Blob;
+};
 
 export default function Post() {
   const APIURL =
-    "https://4k4mn7f9lj.execute-api.eu-central-1.amazonaws.com/live";
+    "https://c9yd8397u2.execute-api.eu-central-1.amazonaws.com/live";
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const { register, handleSubmit, watch, formState, setValue } =
+    useForm<Inputs>();
 
-    const formData = new FormData(event.currentTarget);
+  useEffect(() => {
+    setValue("id", crypto.randomUUID());
+  }, [setValue]);
 
-    console.log(event);
-    console.log(formData);
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    console.log(data);
 
     const response = await fetch(`${APIURL}/test`, {
       method: "POST",
-      body: formData,
+      body: JSON.stringify(data),
     });
 
-    const data = await response.json();
-    console.log(data);
-  }
+    const backendResponse = await response.json();
+    console.log(backendResponse);
+  };
 
   return (
     <>
@@ -31,40 +47,86 @@ export default function Post() {
       <Nav></Nav>
       <main id="post-form">
         <div className="post-container">
-          <form onSubmit={onSubmit} className="form">
+          <form onSubmit={handleSubmit(onSubmit)} className="form">
             <h2>Add Post</h2>
-            <label>
-              id
-              <input type="text" id="id" />
+            <label className="input">
+              <span className="input__label">id</span>
+              <input
+                className="input__field"
+                type="text"
+                id="id"
+                disabled
+                {...register("id", { required: true })}
+              />
             </label>
-            <label>
-              type
-              <select name="type" id="type">
+            <label className="input">
+              <span className="input__label">type</span>
+              <select
+                id="type"
+                className="input__field"
+                {...register("type", { required: true })}
+              >
                 <option value="">--Please choose an option--</option>
-                <option value="IMAGE">image</option>
-                <option value="QUOTE">quote</option>
-                <option value="VIDEO">video</option>
-                <option value="STORY">story</option>
+                {Object.keys(PostTypes).map((type) => (
+                  <option key={type} value={type}>
+                    {PostTypes[type as PostTypeKey]}
+                  </option>
+                ))}
               </select>
             </label>
-            <label>
-              Datetime
-              <input type="date" id="type" />
+            <label className="input">
+              <span className="input__label">datetime</span>
+              <input
+                className="input__field"
+                type="datetime-local"
+                id="type"
+                {...register("date", { required: true })}
+              />
             </label>
-            <h2>Content</h2>
-            <label>
-              title
-              <input type="text" id="title" />
+            <label className="input">
+              <span className="input__label">title</span>
+              <input
+                className="input__field"
+                type="text"
+                id="title"
+                {...register("title", { required: true })}
+              />
             </label>
-            <label>
-              body
-              <input type="text" id="body" />
-            </label>
-            <label>
-              file
-              <input type="file" />
-            </label>
-            <button type="submit">Add Post</button>
+            {(watch("type") === PostTypes.quote ||
+              watch("type") === PostTypes.story) && (
+              <label className="input">
+                <span className="input__label">body</span>
+                <textarea
+                  id="body"
+                  className="input__field"
+                  {...register("body")}
+                />
+              </label>
+            )}
+            {watch("type") === PostTypes.photo && (
+              <label className="input">
+                <span className="input__label">file</span>
+                <input
+                  type="file"
+                  className="input__field"
+                  {...register("image")}
+                />
+              </label>
+            )}
+            {watch("type") === PostTypes.video && (
+              <label className="input">
+                <span className="input__label">url</span>
+                <input
+                  className="input__field"
+                  type="text"
+                  id="title"
+                  {...register("videoUrl")}
+                />
+              </label>
+            )}
+            <button type="submit" className="button">
+              Add Post
+            </button>
           </form>
         </div>
       </main>
