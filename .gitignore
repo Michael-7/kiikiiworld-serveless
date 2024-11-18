@@ -2,7 +2,6 @@
 compiled-functions
 .terraform
 next-env.d.ts
-.eslintrc.json
 .next
 /frontend/out
 

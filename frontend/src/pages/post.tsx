@@ -1,7 +1,7 @@
 import Nav from "@/components/nav/nav";
 import { PostTypeKey, PostTypes } from "@/types/post";
 import Head from "next/head";
-import { FormEvent, useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 // https://react-hook-form.com/get-started
@@ -13,30 +13,78 @@ type Inputs = {
   title: string;
   body: string;
   videoUrl: string;
-  image: Blob;
+  image: FileList;
 };
 
 export default function Post() {
-  const APIURL =
-    "https://c9yd8397u2.execute-api.eu-central-1.amazonaws.com/live";
+  const APIURL = process.env.APIGATEWAY;
 
-  const { register, handleSubmit, watch, formState, setValue } =
+  const [result, setResult] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const { register, handleSubmit, watch, formState, setValue, reset } =
     useForm<Inputs>();
 
   useEffect(() => {
     setValue("id", crypto.randomUUID());
   }, [setValue]);
 
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    console.log(data);
+  const watchImage = watch("image");
 
-    const response = await fetch(`${APIURL}/test`, {
+  useEffect(() => {
+    console.log(watchImage);
+
+    const handleFileChange = async (file: File) => {
+      try {
+        const getSignedUrl = await fetch(
+          `${APIURL}/image?fileName=${file.name}&fileType=${file.type}`,
+          {
+            method: "GET",
+          }
+        );
+
+        const { presignedUrl } = await getSignedUrl.json();
+
+        await fetch(presignedUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": file.type,
+          },
+          body: file,
+        });
+      } catch {
+        console.log("error uploading the file");
+      }
+    };
+
+    if (watchImage && watchImage.length === 1) {
+      handleFileChange(watchImage[0]);
+    }
+  }, [watchImage]);
+
+  const onSubmitPost: SubmitHandler<Inputs> = async (data) => {
+    setLoading(true);
+
+    const response = await fetch(`${APIURL}/posts`, {
       method: "POST",
       body: JSON.stringify(data),
     });
 
-    const backendResponse = await response.json();
-    console.log(backendResponse);
+    try {
+      const backendResponse = await response.json();
+      setLoading(false);
+      console.log(backendResponse);
+      setResult("🚫 request failed");
+
+      if (response.status === 200) {
+        setResult("✅ request succeeded");
+        reset();
+        setValue("id", crypto.randomUUID());
+      }
+    } catch {
+      setLoading(false);
+      setResult("🚫 request failed");
+    }
   };
 
   return (
@@ -46,9 +94,13 @@ export default function Post() {
       </Head>
       <Nav></Nav>
       <main id="post-form">
-        <div className="post-container">
-          <form onSubmit={handleSubmit(onSubmit)} className="form">
-            <h2>Add Post</h2>
+        <div
+          className={`post-container ${
+            loading ? "post-container--loading" : ""
+          }`}
+        >
+          <form onSubmit={handleSubmit(onSubmitPost)} className="form">
+            <h1 className="post__title">Add Post</h1>
             <label className="input">
               <span className="input__label">id</span>
               <input
@@ -109,6 +161,8 @@ export default function Post() {
                 <input
                   type="file"
                   className="input__field"
+                  accept=".jpg, .jpeg, .png"
+                  multiple={false}
                   {...register("image")}
                 />
               </label>
@@ -127,6 +181,7 @@ export default function Post() {
             <button type="submit" className="button">
               Add Post
             </button>
+            <p>{result}</p>
           </form>
         </div>
       </main>

@@ -1,10 +1,5 @@
-resource "random_pet" "image_bucket_name" {
-  prefix = "${var.app-name}-${var.env}-image"
-  length = 2
-}
-
 resource "aws_s3_bucket" "image" {
-  bucket        = random_pet.image_bucket_name.id
+  bucket        = "${var.app-name}-${var.env}-image"
   force_destroy = true
 }
 

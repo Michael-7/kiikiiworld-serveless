@@ -142,6 +142,15 @@
     margin-top: calc(var(--nav-height) + var(--spacing-xl));
     z-index: 1;
     background-color: var(--color-light);
+
+    &--loading {
+      opacity: .4;
+    }
+  }
+
+  .post__title {
+    font-weight: var(--font-bold);
+    font-family: var(--accent-font);
   }
 
   .form {
