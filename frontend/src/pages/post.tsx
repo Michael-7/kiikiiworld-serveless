@@ -3,6 +3,7 @@ import { PostTypeKey, PostTypes } from "@/types/post";
 import Head from "next/head";
 import { FormEvent, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { XMLParser } from "fast-xml-parser";
 
 // https://react-hook-form.com/get-started
 
@@ -37,28 +38,43 @@ export default function Post() {
     const handleFileChange = async (file: File) => {
       try {
         const getSignedUrl = await fetch(
-          `${APIURL}/image?fileName=${file.name}&fileType=${file.type}`,
+          `${APIURL}/image?fileName=${file.name}&fileType=${file.type}&fileSize=${file.size}`,
           {
             method: "GET",
           }
         );
 
-        const { presignedUrl } = await getSignedUrl.json();
+        const signedUrlReq = await getSignedUrl;
+        const signedUrl = await signedUrlReq.json();
 
-        await fetch(presignedUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": file.type,
-          },
-          body: file,
-        });
+        if (signedUrlReq.status === 200) {
+          const imageUpload = await put(signedUrl.message, file);
+          console.log(imageUpload);
+        }
       } catch {
         console.log("error uploading the file");
       }
     };
 
+    const put = async (url: string, file: File) => {
+      const req = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+        },
+        body: file,
+      });
+
+      return req;
+    };
+
     if (watchImage && watchImage.length === 1) {
-      handleFileChange(watchImage[0]);
+      if (watchImage[0].size < 5242880) {
+        handleFileChange(watchImage[0]);
+      } else {
+        console.warn("file too big");
+      }
     }
   }, [watchImage]);
 

@@ -23,12 +23,17 @@ export const handler = async (event) => {
   if (event.httpMethod === "GET") {
     const fileName = event.queryStringParameters["fileName"];
     const fileType = event.queryStringParameters["fileType"];
+    const fileSize = event.queryStringParameters["fileSize"];
 
-    if (!event.queryStringParameters || !fileName || !fileType) {
+    if (!event.queryStringParameters || !fileName || !fileType || !fileSize) {
       return generateResponse(
-        "You need to add fileName and fileType query parametes.",
+        "You need to add fileName, fileSize and fileType query parametes.",
         400
       );
+    }
+
+    if (fileSize > 5242880) {
+      return generateResponse("Your file size is too large.", 403);
     }
 
     const clientUrl = await createPresignedUrlWithClient({
@@ -36,6 +41,7 @@ export const handler = async (event) => {
       region,
       fileName,
       fileType,
+      fileSize,
     });
 
     return generateResponse(clientUrl);
@@ -66,12 +72,14 @@ const createPresignedUrlWithClient = ({
   bucket,
   fileName,
   fileType,
+  fileSize,
 }) => {
   const client = new S3Client({ region });
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: fileName,
     ContentType: fileType,
+    ContentLength: fileSize,
   });
   return getSignedUrl(client, command, { expiresIn: 3600 });
 };
