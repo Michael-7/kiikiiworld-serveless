@@ -1,15 +1,18 @@
-const {
+import {
   DynamoDBClient,
   QueryCommand,
   PutItemCommand,
-} = require("@aws-sdk/client-dynamodb");
+} from "@aws-sdk/client-dynamodb";
+
+// import { tableName } from "../env";
 
 const tableName = "kiikiiworld-serverless-prd";
+const feedTableName = "kiikiiworld-serverless-prd-feed";
+
 const client = new DynamoDBClient({ region: "eu-central-1" });
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   console.log("event: ", event);
-  let responseMessage = "Hello World!!!!";
 
   if (
     event.httpMethod === "GET" &&
@@ -17,6 +20,11 @@ exports.handler = async (event) => {
     event.queryStringParameters["type"]
   ) {
     return await getPostByType(event.queryStringParameters["type"]);
+  } else if (
+    event.httpMethod === "GET" &&
+    event.queryStringParameters["postYear"]
+  ) {
+    return await getPosts(event.queryStringParameters["postYear"]);
   } else if (event.httpMethod === "POST" && event.body) {
     return await putPost(event.body);
   }
@@ -49,6 +57,21 @@ async function getPostByType(type) {
   return await sendCommand(queryCmd);
 }
 
+async function getPosts(year) {
+  const queryCmd = new QueryCommand({
+    TableName: tableName,
+    IndexName: feedTableName,
+    KeyConditionExpression: "PostYear = :pk",
+    ExpressionAttributeValues: {
+      ":pk": {
+        S: year,
+      },
+    },
+  });
+
+  return await sendCommand(queryCmd);
+}
+
 function transformPost(post) {
   const parsedPost = JSON.parse(post);
 
@@ -62,8 +85,8 @@ function transformPost(post) {
     PostType: {
       S: parsedPost.type,
     },
-    YearMonth: {
-      S: parsedPost.date.slice(0, 7),
+    PostYear: {
+      S: parsedPost.date.slice(0, 4),
     },
     Content: {
       S: JSON.stringify(postContent),

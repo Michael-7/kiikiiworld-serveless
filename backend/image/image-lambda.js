@@ -8,6 +8,8 @@ import {
   getSignedUrl,
   S3RequestPresigner,
 } from "@aws-sdk/s3-request-presigner";
+
+// import { bucketName, region } from "../env";
 // import { parseUrl } from "@smithy/url-parser";
 // import { formatUrl } from "@aws-sdk/util-format-url";
 // import { Hash } from "@smithy/hash-node";

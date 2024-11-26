@@ -76,7 +76,7 @@ export default function Post() {
         console.warn("file too big");
       }
     }
-  }, [watchImage]);
+  }, [watchImage, APIURL]);
 
   const onSubmitPost: SubmitHandler<Inputs> = async (data) => {
     setLoading(true);
