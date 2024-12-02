@@ -1,4 +1,4 @@
-export default interface BasePost {
+export interface BasePost {
   id: string;
   type: PostType;
   date: string;
@@ -65,4 +65,23 @@ export function generatePost(data: PostForm, images: string[]): Post {
     default:
       return { ...basePost, type: PostType.QUOTE, body: "undefined" };
   }
+}
+
+export function mapPosts(data: any): Post[] {
+  const posts: any[] = data.message.Items;
+
+  const formattedPosts = posts.reverse().map((post) => {
+    console.log(post);
+    console.log(post.Content);
+    const dateId = post.DateId.S.split("__");
+    return {
+      id: dateId[1],
+      type: post.PostType.S,
+      date: dateId[0],
+      ...JSON.parse(post.Content.S),
+    };
+  });
+
+  console.log(formattedPosts);
+  return formattedPosts;
 }

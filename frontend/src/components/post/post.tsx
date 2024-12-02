@@ -1,16 +1,16 @@
-import BasePost, { PostTypes } from "@/types/post";
+import { PostType, Post } from "@/types/post";
 import { MDXContent } from "../mdx/mdx";
 import Link from "next/link";
 import Image from "next/image";
 
-function getPostSpecificHtml(post: BasePost) {
-  switch (post.category) {
-    case PostTypes.photo:
-      if (post.image) {
+function getPostSpecificHtml(post: Post) {
+  switch (post.type) {
+    case PostType.IMAGE:
+      if (post.body) {
         return (
-          <Link href={post.image && getImageUrl(post.image)}>
+          <Link href={post.body[0]}>
             <Image
-              src={post.image && getImageUrl(post.image)}
+              src={post.body[0]}
               className="post__image"
               alt={post.title}
               height="480"
@@ -19,13 +19,13 @@ function getPostSpecificHtml(post: BasePost) {
           </Link>
         );
       }
-    case PostTypes.quote:
-      return <MDXContent code={post.body} components={{}} />;
-    case PostTypes.video:
+    case PostType.QUOTE:
+      return <p>{post.body}</p>;
+    case PostType.VIDEO:
       return (
         <iframe
           className="post__video"
-          src={post.video}
+          src={post.body}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -33,8 +33,8 @@ function getPostSpecificHtml(post: BasePost) {
           allowFullScreen
         ></iframe>
       );
-    case PostTypes.story:
-      return <MDXContent code={post.body} components={{}} />;
+    case PostType.STORY:
+      return <p>{post.body}</p>;
   }
 
   return <p>* ERROR: UNKNOWN POST TYPE *</p>;
@@ -53,7 +53,7 @@ function getImageUrl(id: string): string {
   return `/blog/${id}`;
 }
 
-export default function Post({ post }: { post: BasePost }) {
+export default function PostComponent({ post }: { post: Post }) {
   return (
     <div id="post">
       <div className="post">
