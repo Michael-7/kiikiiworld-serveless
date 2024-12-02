@@ -1,21 +1,68 @@
 export default interface BasePost {
-  slug: string;
-  slugAsParams: string;
-  category: string;
-  title: string;
+  id: string;
+  type: PostType;
   date: string;
-  video?: string;
-  image?: string;
-  quote?: string;
-  description?: string;
+  title: string;
+}
+
+export interface VideoPost extends BasePost {
+  type: PostType.VIDEO;
   body: string;
 }
 
-export enum PostTypes {
-  video = "video",
-  photo = "photo",
-  quote = "quote",
-  story = "story",
+export interface ImagePost extends BasePost {
+  type: PostType.IMAGE;
+  body: string[];
 }
 
-export type PostTypeKey = keyof typeof PostTypes;
+export interface QuotePost extends BasePost {
+  type: PostType.QUOTE;
+  body: string;
+}
+
+export interface StoryPost extends BasePost {
+  type: PostType.STORY;
+  body: string;
+}
+
+export type Post = VideoPost | ImagePost | QuotePost | StoryPost;
+
+export enum PostType {
+  VIDEO = "video",
+  IMAGE = "image",
+  QUOTE = "quote",
+  STORY = "story",
+}
+
+export type PostTypeKey = keyof typeof PostType;
+
+export interface PostForm {
+  id: string;
+  type: string;
+  date: string;
+  title: string;
+  body: string;
+  videoUrl: string;
+  image: FileList | undefined;
+}
+
+export function generatePost(data: PostForm, images: string[]): Post {
+  const basePost = {
+    id: data.id,
+    date: data.date,
+    title: data.title,
+  };
+
+  switch (data.type) {
+    case PostType.IMAGE:
+      return { ...basePost, type: PostType.IMAGE, body: images };
+    case PostType.VIDEO:
+      return { ...basePost, type: PostType.VIDEO, body: data.videoUrl };
+    case PostType.QUOTE:
+      return { ...basePost, type: PostType.QUOTE, body: data.body };
+    case PostType.STORY:
+      return { ...basePost, type: PostType.STORY, body: data.body };
+    default:
+      return { ...basePost, type: PostType.QUOTE, body: "undefined" };
+  }
+}

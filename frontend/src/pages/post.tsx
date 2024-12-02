@@ -1,30 +1,21 @@
 import Nav from "@/components/nav/nav";
-import { PostTypeKey, PostTypes } from "@/types/post";
+import { PostForm, PostTypeKey, PostType, generatePost } from "@/types/post";
 import Head from "next/head";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { XMLParser } from "fast-xml-parser";
 
 // https://react-hook-form.com/get-started
-
-type Inputs = {
-  id: string;
-  type: string;
-  date: string;
-  title: string;
-  body: string;
-  videoUrl: string;
-  image: FileList;
-};
 
 export default function Post() {
   const APIURL = process.env.APIGATEWAY;
 
   const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingImg, setLoadingImg] = useState<boolean>(false);
+  const [images, setImages] = useState<string[]>([]);
 
   const { register, handleSubmit, watch, formState, setValue, reset } =
-    useForm<Inputs>();
+    useForm<PostForm>();
 
   useEffect(() => {
     setValue("id", crypto.randomUUID());
@@ -32,32 +23,49 @@ export default function Post() {
 
   const watchImage = watch("image");
 
+  // --- IMAGE UPLOADING BLOC ---
   useEffect(() => {
     console.log(watchImage);
 
     const handleFileChange = async (file: File) => {
       try {
-        const getSignedUrl = await fetch(
+        const getSignedUrl = fetch(
           `${APIURL}/image?fileName=${file.name}&fileType=${file.type}&fileSize=${file.size}`,
           {
             method: "GET",
           }
         );
 
+        setLoadingImg(true);
         const signedUrlReq = await getSignedUrl;
         const signedUrl = await signedUrlReq.json();
 
         if (signedUrlReq.status === 200) {
           const imageUpload = await put(signedUrl.message, file);
+
           console.log(imageUpload);
+
+          // Check if the upload was successful
+          if (!imageUpload.ok) {
+            throw new Error(`Upload failed with status: ${imageUpload.status}`);
+          }
+
+          // Derive the file's URL from the S3 bucket URL
+          const fileUrl = signedUrl.message.split("?")[0]; // Remove query params
+          console.log(fileUrl);
+          setImages([...images, fileUrl]);
+
+          setValue("image", undefined);
+          setLoadingImg(false);
         }
       } catch {
         console.log("error uploading the file");
+        setLoadingImg(false);
       }
     };
 
     const put = async (url: string, file: File) => {
-      const req = await fetch(url, {
+      return fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
@@ -65,8 +73,6 @@ export default function Post() {
         },
         body: file,
       });
-
-      return req;
     };
 
     if (watchImage && watchImage.length === 1) {
@@ -76,14 +82,18 @@ export default function Post() {
         console.warn("file too big");
       }
     }
-  }, [watchImage, APIURL]);
+  }, [watchImage, APIURL, images, setValue]);
 
-  const onSubmitPost: SubmitHandler<Inputs> = async (data) => {
+  // --- POST SUBMIT BLOC ---
+  const onSubmitPost: SubmitHandler<PostForm> = async (data) => {
     setLoading(true);
+
+    console.log(data);
+    console.log(generatePost(data, images));
 
     const response = await fetch(`${APIURL}/posts`, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(generatePost(data, images)),
     });
 
     try {
@@ -94,13 +104,18 @@ export default function Post() {
 
       if (response.status === 200) {
         setResult("✅ request succeeded");
-        reset();
-        setValue("id", crypto.randomUUID());
+        resetForm();
       }
     } catch {
       setLoading(false);
       setResult("🚫 request failed");
     }
+  };
+
+  const resetForm = () => {
+    reset();
+    setValue("id", crypto.randomUUID());
+    setImages([]);
   };
 
   return (
@@ -128,19 +143,20 @@ export default function Post() {
               />
             </label>
             <label className="input">
-              <span className="input__label">type</span>
-              <select
-                id="type"
-                className="input__field"
-                {...register("type", { required: true })}
-              >
-                <option value="">--Please choose an option--</option>
-                {Object.keys(PostTypes).map((type) => (
-                  <option key={type} value={type}>
-                    {PostTypes[type as PostTypeKey]}
-                  </option>
+              <span className="input__label">Type</span>
+              <div className="input__radio-group">
+                {Object.keys(PostType).map((type) => (
+                  <label key={type} className="input__radio-item">
+                    <input
+                      type="radio"
+                      id={`type-${type}`}
+                      value={PostType[type as PostTypeKey]}
+                      {...register("type", { required: true })}
+                    />
+                    {PostType[type as PostTypeKey]}
+                  </label>
                 ))}
-              </select>
+              </div>
             </label>
             <label className="input">
               <span className="input__label">datetime</span>
@@ -160,8 +176,8 @@ export default function Post() {
                 {...register("title", { required: true })}
               />
             </label>
-            {(watch("type") === PostTypes.quote ||
-              watch("type") === PostTypes.story) && (
+            {(watch("type") === PostType.QUOTE ||
+              watch("type") === PostType.STORY) && (
               <label className="input">
                 <span className="input__label">body</span>
                 <textarea
@@ -171,19 +187,22 @@ export default function Post() {
                 />
               </label>
             )}
-            {watch("type") === PostTypes.photo && (
-              <label className="input">
-                <span className="input__label">file</span>
-                <input
-                  type="file"
-                  className="input__field"
-                  accept=".jpg, .jpeg, .png"
-                  multiple={false}
-                  {...register("image")}
-                />
-              </label>
+            {watch("type") === PostType.IMAGE && (
+              <>
+                <label className="input">
+                  <span className="input__label">file</span>
+                  <input
+                    type="file"
+                    className="input__field"
+                    accept=".jpg, .jpeg, .png"
+                    multiple={true}
+                    {...register("image")}
+                  />
+                </label>
+                {loadingImg && <p>uploading...</p>}
+              </>
             )}
-            {watch("type") === PostTypes.video && (
+            {watch("type") === PostType.VIDEO && (
               <label className="input">
                 <span className="input__label">url</span>
                 <input
@@ -198,6 +217,16 @@ export default function Post() {
               Add Post
             </button>
             <p>{result}</p>
+            <div className="preview-upload">
+              {images.map((img, i) => (
+                <img
+                  key={img}
+                  src={img}
+                  alt={`img_${i}`}
+                  className="preview-upload__img"
+                />
+              ))}
+            </div>
           </form>
         </div>
       </main>
