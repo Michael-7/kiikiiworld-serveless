@@ -25,8 +25,6 @@ export default function Post() {
 
   // --- IMAGE UPLOADING BLOC ---
   useEffect(() => {
-    console.log(watchImage);
-
     const handleFileChange = async (file: File) => {
       try {
         const getSignedUrl = fetch(
@@ -43,8 +41,6 @@ export default function Post() {
         if (signedUrlReq.status === 200) {
           const imageUpload = await put(signedUrl.message, file);
 
-          console.log(imageUpload);
-
           // Check if the upload was successful
           if (!imageUpload.ok) {
             throw new Error(`Upload failed with status: ${imageUpload.status}`);
@@ -52,14 +48,13 @@ export default function Post() {
 
           // Derive the file's URL from the S3 bucket URL
           const fileUrl = signedUrl.message.split("?")[0]; // Remove query params
-          console.log(fileUrl);
           setImages([...images, fileUrl]);
 
           setValue("image", undefined);
           setLoadingImg(false);
         }
       } catch {
-        console.log("error uploading the file");
+        console.error("error uploading the file");
         setLoadingImg(false);
       }
     };
@@ -88,9 +83,6 @@ export default function Post() {
   const onSubmitPost: SubmitHandler<PostForm> = async (data) => {
     setLoading(true);
 
-    console.log(data);
-    console.log(generatePost(data, images));
-
     const response = await fetch(`${APIURL}/posts`, {
       method: "POST",
       body: JSON.stringify(generatePost(data, images)),
@@ -99,7 +91,6 @@ export default function Post() {
     try {
       const backendResponse = await response.json();
       setLoading(false);
-      console.log(backendResponse);
       setResult("🚫 request failed");
 
       if (response.status === 200) {

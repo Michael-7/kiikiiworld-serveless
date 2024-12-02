@@ -1,5 +1,6 @@
 "use client";
 
+import { PostType, PostTypeKey } from "@/types/post";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -26,12 +27,18 @@ export default function Menu() {
         >
           Everything
         </Link>
-        <Link
-          className={"menu__link " + getMenuItemClass(filter, "IMAGE")}
-          href={`/?filter=IMAGE`}
-        >
-          Image
-        </Link>
+        {Object.keys(PostType).map((type) => (
+          <Link
+            key={type}
+            className={
+              "menu__link " +
+              getMenuItemClass(filter, PostType[type as PostTypeKey])
+            }
+            href={`/?filter=${PostType[type as PostTypeKey]}`}
+          >
+            {PostType[type as PostTypeKey]}
+          </Link>
+        ))}
       </div>
     </div>
   );

@@ -22,54 +22,56 @@ export default function Home() {
     });
 
     const data = await req.json(); // Parse the JSON body
-    console.log(data);
 
     setAllPosts((posts) => [...posts, ...mapPosts(data)]);
     setloading(false);
   }, [setAllPosts, APIURL, year]);
+
+  const getPostsByCategory = useCallback(async () => {
+    setloading(true);
+    const req = await fetch(`${APIURL}/posts?type=${filter}`, {
+      method: "GET",
+    });
+
+    const data = await req.json(); // Parse the JSON body
+
+    setAllPosts(mapPosts(data));
+    setloading(false);
+  }, [setAllPosts, APIURL, filter]);
 
   const handleScroll = useCallback(() => {
     if (
       window.innerHeight + document.documentElement.scrollTop >=
       document.documentElement.offsetHeight - 5
     ) {
-      if (!loading && year !== MAXYEAR) {
+      if (!loading && year !== MAXYEAR && !filter) {
         setYear((prevPage) => prevPage - 1); // Load next page
       }
     }
-  }, [loading, year]);
+  }, [loading, year, filter]);
 
   useEffect(() => {
     try {
-      getPosts();
+      if (filter) {
+        getPostsByCategory();
+      } else {
+        getPosts();
+      }
     } catch (err) {
       console.error("Failed to fetch posts");
     }
-  }, [getPosts, APIURL]);
+  }, [getPosts, APIURL, getPostsByCategory, filter]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // useEffect(() => {
-  //   const workingPosts = [...allPosts];
-
-  //   const sortedPosts = workingPosts.sort((postOne, postTwo) => {
-  //     return (
-  //       new Date(postTwo.date).valueOf() - new Date(postOne.date).valueOf()
-  //     );
-  //   });
-
-  //   if (filter) {
-  //     const filteredPosts = sortedPosts.filter(
-  //       (post) => post.category === filter
-  //     );
-  //     setShownPosts(filteredPosts);
-  //   } else {
-  //     setShownPosts(sortedPosts);
-  //   }
-  // }, [filter, setShownPosts]);
+  // RESET STATE ON FILTER CHANGE
+  useEffect(() => {
+    setAllPosts([]);
+    setYear(new Date().getFullYear());
+  }, [filter]);
 
   return (
     <>

@@ -1,9 +1,22 @@
 import { PostType, Post } from "@/types/post";
-import { MDXContent } from "../mdx/mdx";
 import Link from "next/link";
 import Image from "next/image";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+import { useEffect, useState } from "react";
 
-function getPostSpecificHtml(post: Post) {
+async function mdToHtml(string: string) {
+  const html = await marked.parse(string);
+  const sanitizedHtml = DOMPurify.sanitize(html);
+  return (
+    <div
+      className="post__markdown"
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    ></div>
+  );
+}
+
+async function getPostSpecificHtml(post: Post) {
   switch (post.type) {
     case PostType.IMAGE:
       if (post.body) {
@@ -20,7 +33,7 @@ function getPostSpecificHtml(post: Post) {
         );
       }
     case PostType.QUOTE:
-      return <p>{post.body}</p>;
+      return await mdToHtml(post.body as string);
     case PostType.VIDEO:
       return (
         <iframe
@@ -34,10 +47,8 @@ function getPostSpecificHtml(post: Post) {
         ></iframe>
       );
     case PostType.STORY:
-      return <p>{post.body}</p>;
+      return await mdToHtml(post.body as string);
   }
-
-  return <p>* ERROR: UNKNOWN POST TYPE *</p>;
 }
 
 function formatDate(inputDate: string): string {
@@ -49,15 +60,22 @@ function formatDate(inputDate: string): string {
   });
 }
 
-function getImageUrl(id: string): string {
-  return `/blog/${id}`;
-}
-
 export default function PostComponent({ post }: { post: Post }) {
+  const [data, setData] = useState<any>("...");
+
+  useEffect(() => {
+    async function getBody(post: Post) {
+      const dataata = await getPostSpecificHtml(post);
+      setData(dataata);
+    }
+
+    getBody(post);
+  }, [post]);
+
   return (
     <div id="post">
       <div className="post">
-        <div className="post__content">{getPostSpecificHtml(post)}</div>
+        <div className="post__content">{data}</div>
         <div className="post__details">
           <span className="post__title">{post.title}</span>
           <span className="post__date">{formatDate(post.date)}</span>

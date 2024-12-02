@@ -71,6 +71,49 @@
     &__quote {
       margin-bottom: var(--spacing-sm);
     }
+
+    &__markdown {
+      font-family: var(--primary-font);
+      font-size: 1rem;
+      line-height: 1.3rem;
+
+      h1, h2, h3, h4 ,h5 ,h6 {
+        font-family: var(--primary-font);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      ul, ol {
+        margin: var(--spacing-sm) 0;
+      }
+
+      a {
+        color: var(--color-primary);
+      }
+
+      strong {
+        font-weight: var(--font-bold);
+      }
+
+      em {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: -3px;
+          right: -3px;
+          transform: skewX(-5deg);
+          background-color: rgba(var(--color-primary-2-rgb), 0.25);
+        }
+      }
+
+      code {
+        font-family: var(--accent-font);
+        font-size: var(--font-size-sm);
+      }
+    }
   }
 }
 
@@ -118,7 +161,8 @@
       text-decoration: none;
       color: var(--color-text);
       padding: var(--spacing-xsm) var(--spacing-md) var(--spacing-xsm) var(--spacing-sm);
-  
+      text-transform: capitalize;
+
       &--selected {
         background-color: var(--color-primary);
         color: var(--color-text-on-primary);

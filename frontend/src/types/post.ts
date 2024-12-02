@@ -71,8 +71,6 @@ export function mapPosts(data: any): Post[] {
   const posts: any[] = data.message.Items;
 
   const formattedPosts = posts.reverse().map((post) => {
-    console.log(post);
-    console.log(post.Content);
     const dateId = post.DateId.S.split("__");
     return {
       id: dateId[1],
@@ -82,6 +80,5 @@ export function mapPosts(data: any): Post[] {
     };
   });
 
-  console.log(formattedPosts);
   return formattedPosts;
 }
