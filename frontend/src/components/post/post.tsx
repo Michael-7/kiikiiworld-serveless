@@ -60,8 +60,17 @@ function formatDate(inputDate: string): string {
   });
 }
 
-export default function PostComponent({ post }: { post: Post }) {
+export default function PostComponent({
+  post,
+  admin,
+}: {
+  post: Post;
+  admin: boolean;
+}) {
+  const APIURL = process.env.APIGATEWAY;
+
   const [data, setData] = useState<any>("...");
+  const [deleted, setDeleted] = useState<boolean>(false);
 
   useEffect(() => {
     async function getBody(post: Post) {
@@ -72,9 +81,39 @@ export default function PostComponent({ post }: { post: Post }) {
     getBody(post);
   }, [post]);
 
+  async function deletePost() {
+    try {
+      const deletePost = fetch(
+        `${APIURL}/posts?id=${post.id}&type=${post.type}&date=${post.date}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const deleted = await deletePost;
+
+      if (deleted.status === 200) {
+        setDeleted(true);
+      }
+    } catch (err) {
+      console.warn("u failed G");
+    }
+  }
+
+  if (deleted) {
+    return undefined;
+  }
+
   return (
     <div id="post">
       <div className="post">
+        {admin && (
+          <div className="post__edit">
+            {/* <button onClick={editPost}>Edit</button> */}
+            <button onClick={deletePost}>Delete</button>
+            {/* <button>Hide</button> */}
+          </div>
+        )}
         <div className="post__content">{data}</div>
         <div className="post__details">
           <span className="post__title">{post.title}</span>

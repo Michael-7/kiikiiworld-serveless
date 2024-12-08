@@ -10,6 +10,7 @@ export default function Home() {
   const APIURL = process.env.APIGATEWAY;
   const MAXYEAR = 2021;
   const filter = useSearchParams()?.get("filter");
+  const admin = useSearchParams()?.get("admin");
 
   const [allPosts, setAllPosts] = useState<PostT[]>([]);
   const [year, setYear] = useState<number>(new Date().getFullYear());
@@ -83,7 +84,7 @@ export default function Home() {
         <div className="post-container">
           <div className="post-list">
             {allPosts.map((post) => (
-              <Post key={post.id} post={post}></Post>
+              <Post key={post.id} post={post} admin={!!admin}></Post>
             ))}
 
             {loading && <h3>Loading...</h3>}

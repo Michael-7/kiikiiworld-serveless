@@ -2,6 +2,7 @@ import {
   DynamoDBClient,
   QueryCommand,
   PutItemCommand,
+  DeleteItemCommand,
 } from "@aws-sdk/client-dynamodb";
 
 // import { tableName } from "../env";
@@ -26,6 +27,19 @@ export const handler = async (event) => {
   ) {
     return await getPosts(event.queryStringParameters["postYear"]);
   } else if (event.httpMethod === "POST" && event.body) {
+    return await putPost(event.body);
+  } else if (
+    event.httpMethod === "DELETE" &&
+    event.queryStringParameters["id"] &&
+    event.queryStringParameters["type"] &&
+    event.queryStringParameters["date"]
+  ) {
+    deletePost(
+      event.queryStringParameters["id"],
+      event.queryStringParameters["type"],
+      event.queryStringParameters["date"]
+    );
+  } else if (event.httpMethod === "PUT" && event.body) {
     return await putPost(event.body);
   }
 
@@ -55,6 +69,20 @@ async function getPostByType(type) {
   });
 
   return await sendCommand(queryCmd);
+}
+
+async function deletePost(postId, postType, postDate) {
+  const dateId = `${postDate}__${postId}`;
+
+  const deleteCmd = new DeleteItemCommand({
+    TableName: tableName,
+    Key: {
+      PostType: { S: postType },
+      DateId: { S: dateId },
+    },
+  });
+
+  return await sendCommand(deleteCmd);
 }
 
 async function getPosts(year) {

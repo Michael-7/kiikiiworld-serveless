@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "this" {
   // TODO: Lock this down when i have a url
   cors_configuration {
     allow_origins = ["*"]
-    allow_methods = ["POST", "GET", "OPTIONS"]
+    allow_methods = ["POST", "GET", "OPTIONS", "DELETE"]
     allow_headers = ["content-type"]
     max_age = 300
   }

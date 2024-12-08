@@ -31,3 +31,10 @@ resource "aws_apigatewayv2_route" "post_posts" {
   target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
 }
 
+resource "aws_apigatewayv2_route" "delete_posts" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  route_key = "DELETE /posts"
+  target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
+}
+
