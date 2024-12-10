@@ -38,3 +38,9 @@ resource "aws_apigatewayv2_route" "delete_posts" {
   target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
 }
 
+resource "aws_apigatewayv2_route" "patch_posts" {
+  api_id = aws_apigatewayv2_api.this.id
+
+  route_key = "PATCH /posts"
+  target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
+}

@@ -1,11 +1,11 @@
 "use client";
 
-import { Inputs } from "@/pages/post";
+import { PostForm } from "@/types/post";
 import { HTMLAttributes } from "react";
 import { UseFormRegister } from "react-hook-form";
 
 type inputProps = HTMLAttributes<HTMLInputElement> & {
-  register: UseFormRegister<Inputs>;
+  register: UseFormRegister<PostForm>;
 };
 
 export default function Input({ children, register, ...rest }: inputProps) {

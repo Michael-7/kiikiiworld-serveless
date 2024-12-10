@@ -3,6 +3,7 @@ import {
   QueryCommand,
   PutItemCommand,
   DeleteItemCommand,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 
 // import { tableName } from "../env";
@@ -13,7 +14,7 @@ const feedTableName = "kiikiiworld-serverless-prd-feed";
 const client = new DynamoDBClient({ region: "eu-central-1" });
 
 export const handler = async (event) => {
-  console.log("event: ", event);
+  console.log("--- event: ", event.body);
 
   if (
     event.httpMethod === "GET" &&
@@ -41,14 +42,14 @@ export const handler = async (event) => {
     );
   } else if (event.httpMethod === "PUT" && event.body) {
     return await putPost(event.body);
+  } else if (event.httpMethod === "PATCH" && event.body) {
+    return await patchPost(event.body);
   }
 
   return generateResponse("SKIPPED");
 };
 
 async function putPost(post) {
-  console.log(transformPost(post));
-
   const putCmd = new PutItemCommand({
     TableName: tableName,
     Item: transformPost(post),
@@ -83,6 +84,27 @@ async function deletePost(postId, postType, postDate) {
   });
 
   return await sendCommand(deleteCmd);
+}
+
+async function patchPost(post) {
+  const parsedPost = JSON.parse(post);
+  const { date, id, type, ...postContent } = parsedPost;
+
+  const dateId = `${date}__${id}`;
+
+  const patchPost = new UpdateItemCommand({
+    TableName: tableName,
+    Key: {
+      PostType: {S: type},
+      DateId: {S: dateId},
+    },
+    UpdateExpression: "set Content = :body",
+    ExpressionAttributeValues: {
+      ":body": { S: JSON.stringify(postContent) },
+    }
+  });
+
+  return await sendCommand(patchPost);
 }
 
 async function getPosts(year) {

@@ -29,6 +29,10 @@
   .post {
     position: relative;
     width: 100%;
+
+    &--hide {
+      opacity: .3;
+    }
   
     &__content {
       max-width: 100%;

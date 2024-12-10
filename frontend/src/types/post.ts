@@ -3,6 +3,9 @@ export interface BasePost {
   type: PostType;
   date: string;
   title: string;
+  meta?: {
+    hide?: boolean;
+  }
 }
 
 export interface VideoPost extends BasePost {

@@ -100,18 +100,51 @@ export default function PostComponent({
     }
   }
 
-  if (deleted) {
+  async function hidePost() {
+    const newPost = {
+      ...post,
+      meta: {
+        hide: true
+      }
+    }
+
+    try {
+      const hidePost = fetch(`${APIURL}/posts`, {
+        method: "PATCH",
+        body: JSON.stringify(newPost),
+      })
+
+      const hidden = await hidePost;
+
+      if (hidden.status === 200) {
+        setDeleted(true);
+      }
+
+    } catch {
+      console.warn("u failed G");
+    }
+  }
+
+  if (deleted || (post.meta?.hide && !admin)) {
     return undefined;
+  }
+
+  const getPostClasses = () => {
+    const baseClass = "post";
+    if (admin && post.meta?.hide) {
+      return `${baseClass} post--hide`;
+    }
+    return baseClass;
   }
 
   return (
     <div id="post">
-      <div className="post">
+      <div className={getPostClasses()}>
         {admin && (
           <div className="post__edit">
             {/* <button onClick={editPost}>Edit</button> */}
             <button onClick={deletePost}>Delete</button>
-            {/* <button>Hide</button> */}
+            <button onClick={hidePost}>Hide</button>
           </div>
         )}
         <div className="post__content">{data}</div>
