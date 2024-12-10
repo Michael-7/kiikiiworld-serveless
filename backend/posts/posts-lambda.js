@@ -14,7 +14,7 @@ const feedTableName = "kiikiiworld-serverless-prd-feed";
 const client = new DynamoDBClient({ region: "eu-central-1" });
 
 export const handler = async (event) => {
-  console.log("--- event: ", event.body);
+  console.log("* event: ", event);
 
   if (
     event.httpMethod === "GET" &&

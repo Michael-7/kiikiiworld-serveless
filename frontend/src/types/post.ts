@@ -3,8 +3,8 @@ export interface BasePost {
   type: PostType;
   date: string;
   title: string;
-  meta?: {
-    hide?: boolean;
+  meta: {
+    hide: boolean;
   }
 }
 
@@ -54,6 +54,9 @@ export function generatePost(data: PostForm, images: string[]): Post {
     id: data.id,
     date: data.date,
     title: data.title,
+    meta: {
+      hide: false,
+    }
   };
 
   switch (data.type) {

@@ -71,6 +71,7 @@ export default function PostComponent({
 
   const [data, setData] = useState<any>("...");
   const [deleted, setDeleted] = useState<boolean>(false);
+  const [hidden, setHidden] = useState(post.meta.hide);
 
   useEffect(() => {
     async function getBody(post: Post) {
@@ -104,7 +105,7 @@ export default function PostComponent({
     const newPost = {
       ...post,
       meta: {
-        hide: true
+        hide: !hidden
       }
     }
 
@@ -114,10 +115,11 @@ export default function PostComponent({
         body: JSON.stringify(newPost),
       })
 
-      const hidden = await hidePost;
+      const hiddenReq = await hidePost;
 
-      if (hidden.status === 200) {
-        setDeleted(true);
+      if (hiddenReq.status === 200) {
+        console.log("success G");
+        setHidden(!hidden);
       }
 
     } catch {
@@ -125,13 +127,13 @@ export default function PostComponent({
     }
   }
 
-  if (deleted || (post.meta?.hide && !admin)) {
+  if (deleted || (hidden && !admin)) {
     return undefined;
   }
 
   const getPostClasses = () => {
     const baseClass = "post";
-    if (admin && post.meta?.hide) {
+    if (admin && hidden) {
       return `${baseClass} post--hide`;
     }
     return baseClass;
@@ -144,7 +146,7 @@ export default function PostComponent({
           <div className="post__edit">
             {/* <button onClick={editPost}>Edit</button> */}
             <button onClick={deletePost}>Delete</button>
-            <button onClick={hidePost}>Hide</button>
+            <button onClick={hidePost}>{hidden ? 'Show' : 'Hide'}</button>
           </div>
         )}
         <div className="post__content">{data}</div>
