@@ -3,9 +3,11 @@ export interface BasePost {
   type: PostType;
   date: string;
   title: string;
-  meta: {
-    hide: boolean;
-  }
+  meta: PostMeta
+}
+
+export interface PostMeta {
+  hide: boolean;
 }
 
 export interface VideoPost extends BasePost {
@@ -49,13 +51,13 @@ export interface PostForm {
   image: FileList | undefined;
 }
 
-export function generatePost(data: PostForm, images: string[]): Post {
+export function generatePost(data: PostForm, images: string[], meta: PostMeta): Post {
   const basePost = {
     id: data.id,
     date: data.date,
     title: data.title,
     meta: {
-      hide: false,
+      ...meta
     }
   };
 

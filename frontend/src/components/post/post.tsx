@@ -4,6 +4,7 @@ import Image from "next/image";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { useEffect, useState } from "react";
+import { usePostContext } from '@/contexts/post-context';
 
 async function mdToHtml(string: string) {
   const html = await marked.parse(string);
@@ -72,6 +73,7 @@ export default function PostComponent({
   const [data, setData] = useState<any>("...");
   const [deleted, setDeleted] = useState<boolean>(false);
   const [hidden, setHidden] = useState(post.meta.hide);
+  const postState = usePostContext();
 
   useEffect(() => {
     async function getBody(post: Post) {
@@ -139,12 +141,16 @@ export default function PostComponent({
     return baseClass;
   }
 
+  const editPost = () => {
+    postState.setValue(post);
+  }
+
   return (
     <div id="post">
       <div className={getPostClasses()}>
         {admin && (
           <div className="post__edit">
-            {/* <button onClick={editPost}>Edit</button> */}
+            <Link href={{ pathname: '/post', query: {edit: true}}}><button onClick={editPost}>Edit</button></Link>
             <button onClick={deletePost}>Delete</button>
             <button onClick={hidePost}>{hidden ? 'Show' : 'Hide'}</button>
           </div>

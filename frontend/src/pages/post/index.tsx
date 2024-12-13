@@ -3,23 +3,53 @@ import { PostForm, PostTypeKey, PostType, generatePost } from "@/types/post";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { usePostContext } from '@/contexts/post-context';
+import { useSearchParams } from 'next/navigation';
 
 // https://react-hook-form.com/get-started
 
 export default function Post() {
   const APIURL = process.env.APIGATEWAY;
 
+  const postState = usePostContext().value;
+
   const [result, setResult] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingImg, setLoadingImg] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
+  const [editMode, setEditMode] = useState<boolean>(useSearchParams()?.get("edit") === 'true' && postState.id != '');
+
 
   const { register, handleSubmit, watch, formState, setValue, reset } =
     useForm<PostForm>();
 
   useEffect(() => {
-    setValue("id", crypto.randomUUID());
-  }, [setValue]);
+    if (editMode) {
+      setValue("id", postState.id);
+      setValue("title", postState.title);
+      setValue("date", postState.date);
+      setValue("type", postState.type);
+
+      switch (postState.type) {
+        case PostType.IMAGE:
+          setImages(postState.body)
+          break;
+        case PostType.VIDEO:
+          setValue("videoUrl", postState.body);
+          break;
+        case PostType.QUOTE:
+          setValue("body", postState.body);
+          break;
+        case PostType.STORY:
+          setValue("body", postState.body);
+          break;
+        default:
+          break;
+      }
+    } else {
+      setValue("id", crypto.randomUUID());
+    }
+  }, [setValue, editMode, postState]);
 
   const watchImage = watch("image");
 
@@ -83,10 +113,19 @@ export default function Post() {
   const onSubmitPost: SubmitHandler<PostForm> = async (data) => {
     setLoading(true);
 
-    const response = await fetch(`${APIURL}/posts`, {
-      method: "POST",
-      body: JSON.stringify(generatePost(data, images)),
-    });
+    let response;
+
+    if (editMode) {
+      response = await fetch(`${APIURL}/posts`, {
+        method: "PATCH",
+        body: JSON.stringify(generatePost(data, images, postState.meta)),
+      });
+    } else {
+      response = await fetch(`${APIURL}/posts`, {
+        method: "POST",
+        body: JSON.stringify(generatePost(data, images, { hide: false })),
+      });
+    }
 
     try {
       const backendResponse = await response.json();
@@ -106,6 +145,7 @@ export default function Post() {
   const resetForm = () => {
     reset();
     setValue("id", crypto.randomUUID());
+    setEditMode(false);
     setImages([]);
   };
 
@@ -123,7 +163,7 @@ export default function Post() {
         >
           <form onSubmit={handleSubmit(onSubmitPost)} className="form">
             <h1 className="post__title">Add Post</h1>
-            <label className="input">
+            <label className={editMode ? "input input--disabled" : "input"}>
               <span className="input__label">id</span>
               <input
                 className="input__field"
@@ -133,11 +173,11 @@ export default function Post() {
                 {...register("id", { required: true })}
               />
             </label>
-            <label className="input">
+            <label className={editMode ? "input input--disabled" : "input"}>
               <span className="input__label">Type</span>
               <div className="input__radio-group">
                 {Object.keys(PostType).map((type) => (
-                  <label key={type} className="input__radio-item">
+                  <label key={type} className="input__radio-item" >
                     <input
                       type="radio"
                       id={`type-${type}`}
@@ -149,12 +189,13 @@ export default function Post() {
                 ))}
               </div>
             </label>
-            <label className="input">
+            <label className={editMode ? "input input--disabled" : "input"}>
               <span className="input__label">datetime</span>
               <input
                 className="input__field"
                 type="datetime-local"
                 id="type"
+                disabled={editMode}
                 {...register("date", { required: true })}
               />
             </label>
@@ -174,6 +215,7 @@ export default function Post() {
                 <textarea
                   id="body"
                   className="input__field"
+                  rows={5}
                   {...register("body")}
                 />
               </label>
@@ -205,7 +247,7 @@ export default function Post() {
               </label>
             )}
             <button type="submit" className="button">
-              Add Post
+              {editMode ? 'Edit Post' : 'Add Post'}
             </button>
             <p>{result}</p>
             <div className="preview-upload">
