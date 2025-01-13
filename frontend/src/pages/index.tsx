@@ -1,16 +1,16 @@
-import Post from "@/components/post/post";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import Nav from "@/components/nav/nav";
-import Menu from "@/components/menu/menu";
-import Head from "next/head";
-import { Post as PostT, mapPosts } from "@/types/post";
+import Post from '@/components/post/post';
+import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import Nav from '@/components/nav/nav';
+import Menu from '@/components/menu/menu';
+import Head from 'next/head';
+import { mapPosts, Post as PostT } from '@/types/post';
 
 export default function Home() {
   const APIURL = process.env.APIGATEWAY;
   const MAXYEAR = 2021;
-  const filter = useSearchParams()?.get("filter");
-  const admin = useSearchParams()?.get("admin");
+  const filter = useSearchParams()?.get('filter');
+  const admin = useSearchParams()?.get('admin');
 
   const [allPosts, setAllPosts] = useState<PostT[]>([]);
   const [year, setYear] = useState<number>(new Date().getFullYear());
@@ -18,20 +18,26 @@ export default function Home() {
 
   const getPosts = useCallback(async () => {
     setloading(true);
+
     const req = await fetch(`${APIURL}/posts?postYear=${year}`, {
-      method: "GET",
+      method: 'GET',
     });
 
     const data = await req.json(); // Parse the JSON body
 
     setAllPosts((posts) => [...posts, ...mapPosts(data)]);
+
+    if (allPosts.length < 3) {
+      setYear(year - 1);
+    }
+
     setloading(false);
   }, [setAllPosts, APIURL, year]);
 
   const getPostsByCategory = useCallback(async () => {
     setloading(true);
     const req = await fetch(`${APIURL}/posts?type=${filter}`, {
-      method: "GET",
+      method: 'GET',
     });
 
     const data = await req.json(); // Parse the JSON body
@@ -59,13 +65,13 @@ export default function Home() {
         getPosts();
       }
     } catch (err) {
-      console.error("Failed to fetch posts");
+      console.error('Failed to fetch posts');
     }
   }, [getPosts, APIURL, getPostsByCategory, filter]);
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
   // RESET STATE ON FILTER CHANGE
