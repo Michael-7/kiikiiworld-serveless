@@ -108,7 +108,6 @@ async function registerVerify(body, cookie) {
       },
       body: `${cookie.userName} has been verified`,
     };
-
   } catch {
     return {
       statusCode: 400,
