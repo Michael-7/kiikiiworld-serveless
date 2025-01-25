@@ -1,12 +1,12 @@
 module "posts_lambda" {
   source = "./modules/lambda"
 
-  env = var.env
-  name = "${var.app-name}-posts"
-  filename = "posts-lambda"
-  source_dir = "../../backend/posts"
-  lambda_bucket_id = aws_s3_bucket.lambda.id
-  api_gateway_id = aws_apigatewayv2_api.this.id
+  env                       = var.env
+  name                      = "${var.app-name}-posts"
+  filename                  = "posts-lambda"
+  source_dir                = "../../backend/posts"
+  lambda_bucket_id          = aws_s3_bucket.lambda.id
+  api_gateway_id            = aws_apigatewayv2_api.this.id
   api_gateway_execution_arn = aws_apigatewayv2_api.this.execution_arn
 }
 
@@ -29,6 +29,9 @@ resource "aws_apigatewayv2_route" "post_posts" {
 
   route_key = "POST /posts"
   target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
+
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.admin.id
 }
 
 resource "aws_apigatewayv2_route" "delete_posts" {
@@ -36,6 +39,9 @@ resource "aws_apigatewayv2_route" "delete_posts" {
 
   route_key = "DELETE /posts"
   target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
+
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.admin.id
 }
 
 resource "aws_apigatewayv2_route" "patch_posts" {
@@ -43,4 +49,7 @@ resource "aws_apigatewayv2_route" "patch_posts" {
 
   route_key = "PATCH /posts"
   target    = "integrations/${module.posts_lambda.api_gateway_intergration_id}"
+
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.admin.id
 }

@@ -1,10 +1,11 @@
-import Nav from "@/components/nav/nav";
-import { PostForm, PostTypeKey, PostType, generatePost } from "@/types/post";
-import Head from "next/head";
-import { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import Nav from '@/components/nav/nav';
+import { generatePost, PostForm, PostType, PostTypeKey } from '@/types/post';
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { usePostContext } from '@/contexts/post-context';
 import { useSearchParams } from 'next/navigation';
+import { getToken } from '@/util/token';
 
 // https://react-hook-form.com/get-started
 
@@ -13,11 +14,11 @@ export default function Post() {
 
   const postState = usePostContext().value;
 
-  const [result, setResult] = useState<string>("");
+  const [result, setResult] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingImg, setLoadingImg] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
-  const [editMode, setEditMode] = useState<boolean>(useSearchParams()?.get("edit") === 'true' && postState.id != '');
+  const [editMode, setEditMode] = useState<boolean>(useSearchParams()?.get('edit') === 'true' && postState.id != '');
 
 
   const { register, handleSubmit, watch, formState, setValue, reset } =
@@ -25,33 +26,33 @@ export default function Post() {
 
   useEffect(() => {
     if (editMode) {
-      setValue("id", postState.id);
-      setValue("title", postState.title);
-      setValue("date", postState.date);
-      setValue("type", postState.type);
+      setValue('id', postState.id);
+      setValue('title', postState.title);
+      setValue('date', postState.date);
+      setValue('type', postState.type);
 
       switch (postState.type) {
         case PostType.IMAGE:
-          setImages(postState.body)
+          setImages(postState.body);
           break;
         case PostType.VIDEO:
-          setValue("videoUrl", postState.body);
+          setValue('videoUrl', postState.body);
           break;
         case PostType.QUOTE:
-          setValue("body", postState.body);
+          setValue('body', postState.body);
           break;
         case PostType.STORY:
-          setValue("body", postState.body);
+          setValue('body', postState.body);
           break;
         default:
           break;
       }
     } else {
-      setValue("id", crypto.randomUUID());
+      setValue('id', crypto.randomUUID());
     }
   }, [setValue, editMode, postState]);
 
-  const watchImage = watch("image");
+  const watchImage = watch('image');
 
   // --- IMAGE UPLOADING BLOC ---
   useEffect(() => {
@@ -60,8 +61,11 @@ export default function Post() {
         const getSignedUrl = fetch(
           `${APIURL}/image?fileName=${file.name}&fileType=${file.type}&fileSize=${file.size}`,
           {
-            method: "GET",
-          }
+            method: 'GET',
+            headers: {
+              'Authorization': getToken(),
+            },
+          },
         );
 
         setLoadingImg(true);
@@ -77,24 +81,24 @@ export default function Post() {
           }
 
           // Derive the file's URL from the S3 bucket URL
-          const fileUrl = signedUrl.message.split("?")[0]; // Remove query params
+          const fileUrl = signedUrl.message.split('?')[0]; // Remove query params
           setImages([...images, fileUrl]);
 
-          setValue("image", undefined);
+          setValue('image', undefined);
           setLoadingImg(false);
         }
       } catch {
-        console.error("error uploading the file");
+        console.error('error uploading the file');
         setLoadingImg(false);
       }
     };
 
     const put = async (url: string, file: File) => {
       return fetch(url, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": file.type,
-          "Content-Length": file.size.toString(),
+          'Content-Type': file.type,
+          'Content-Length': file.size.toString(),
         },
         body: file,
       });
@@ -104,7 +108,7 @@ export default function Post() {
       if (watchImage[0].size < 5242880) {
         handleFileChange(watchImage[0]);
       } else {
-        console.warn("file too big");
+        console.warn('file too big');
       }
     }
   }, [watchImage, APIURL, images, setValue]);
@@ -117,12 +121,15 @@ export default function Post() {
 
     if (editMode) {
       response = await fetch(`${APIURL}/posts`, {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(generatePost(data, images, postState.meta)),
       });
     } else {
       response = await fetch(`${APIURL}/posts`, {
-        method: "POST",
+        method: 'POST',
+        headers: {
+          'Authorization': getToken(),
+        },
         body: JSON.stringify(generatePost(data, images, { hide: false })),
       });
     }
@@ -130,21 +137,21 @@ export default function Post() {
     try {
       const backendResponse = await response.json();
       setLoading(false);
-      setResult("🚫 request failed");
+      setResult('🚫 request failed');
 
       if (response.status === 200) {
-        setResult("✅ request succeeded");
+        setResult('✅ request succeeded');
         resetForm();
       }
     } catch {
       setLoading(false);
-      setResult("🚫 request failed");
+      setResult('🚫 request failed');
     }
   };
 
   const resetForm = () => {
     reset();
-    setValue("id", crypto.randomUUID());
+    setValue('id', crypto.randomUUID());
     setEditMode(false);
     setImages([]);
   };
@@ -158,45 +165,45 @@ export default function Post() {
       <main id="post-form">
         <div
           className={`post-container ${
-            loading ? "post-container--loading" : ""
+            loading ? 'post-container--loading' : ''
           }`}
         >
           <form onSubmit={handleSubmit(onSubmitPost)} className="form">
             <h1 className="post__title">Add Post</h1>
-            <label className={editMode ? "input input--disabled" : "input"}>
+            <label className={editMode ? 'input input--disabled' : 'input'}>
               <span className="input__label">id</span>
               <input
                 className="input__field"
                 type="text"
                 id="id"
                 disabled
-                {...register("id", { required: true })}
+                {...register('id', { required: true })}
               />
             </label>
-            <label className={editMode ? "input input--disabled" : "input"}>
+            <label className={editMode ? 'input input--disabled' : 'input'}>
               <span className="input__label">Type</span>
               <div className="input__radio-group">
                 {Object.keys(PostType).map((type) => (
-                  <label key={type} className="input__radio-item" >
+                  <label key={type} className="input__radio-item">
                     <input
                       type="radio"
                       id={`type-${type}`}
                       value={PostType[type as PostTypeKey]}
-                      {...register("type", { required: true })}
+                      {...register('type', { required: true })}
                     />
                     {PostType[type as PostTypeKey]}
                   </label>
                 ))}
               </div>
             </label>
-            <label className={editMode ? "input input--disabled" : "input"}>
+            <label className={editMode ? 'input input--disabled' : 'input'}>
               <span className="input__label">datetime</span>
               <input
                 className="input__field"
                 type="datetime-local"
                 id="type"
                 disabled={editMode}
-                {...register("date", { required: true })}
+                {...register('date', { required: true })}
               />
             </label>
             <label className="input">
@@ -205,22 +212,22 @@ export default function Post() {
                 className="input__field"
                 type="text"
                 id="title"
-                {...register("title", { required: true })}
+                {...register('title', { required: true })}
               />
             </label>
-            {(watch("type") === PostType.QUOTE ||
-              watch("type") === PostType.STORY) && (
+            {(watch('type') === PostType.QUOTE ||
+              watch('type') === PostType.STORY) && (
               <label className="input">
                 <span className="input__label">body</span>
                 <textarea
                   id="body"
                   className="input__field"
                   rows={5}
-                  {...register("body")}
+                  {...register('body')}
                 />
               </label>
             )}
-            {watch("type") === PostType.IMAGE && (
+            {watch('type') === PostType.IMAGE && (
               <>
                 <label className="input">
                   <span className="input__label">file</span>
@@ -229,20 +236,20 @@ export default function Post() {
                     className="input__field"
                     accept=".jpg, .jpeg, .png"
                     multiple={true}
-                    {...register("image")}
+                    {...register('image')}
                   />
                 </label>
                 {loadingImg && <p>uploading...</p>}
               </>
             )}
-            {watch("type") === PostType.VIDEO && (
+            {watch('type') === PostType.VIDEO && (
               <label className="input">
                 <span className="input__label">url</span>
                 <input
                   className="input__field"
                   type="text"
                   id="title"
-                  {...register("videoUrl")}
+                  {...register('videoUrl')}
                 />
               </label>
             )}

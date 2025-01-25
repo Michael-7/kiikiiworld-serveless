@@ -5,6 +5,7 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
+import jwt from 'jsonwebtoken';
 
 const tableName = 'kiikiiworld-serverless-users-prd';
 
@@ -93,6 +94,7 @@ async function registerVerify(body, cookie) {
     }
 
     let user = await createUser(cookie.userName, {
+      role: 'USER',
       id: verification.registrationInfo.credential.id,
       publicKey: verification.registrationInfo.credential.publicKey,
       counter: verification.registrationInfo.credential.counter,
@@ -156,9 +158,12 @@ async function loginVerify(body, cookie) {
     return generateResponse('User info not found', 400);
   }
 
+  console.log('get user');
   // GET USER BY USERNAME
   const userPassKey = await getUser(cookie.username);
 
+  console.log('get verification');
+  const publicKey = new Uint8Array(Object.values(userPassKey.publicKey));
   const verification = await verifyAuthenticationResponse({
     response: body,
     expectedChallenge: cookie.challenge,
@@ -166,21 +171,35 @@ async function loginVerify(body, cookie) {
     expectedRPID: RP_ID,
     credential: {
       id: userPassKey.id,
-      publicKey: new Uint8Array(Object.values(userPassKey.publicKey)),
+      publicKey,
       counter: userPassKey.counter,
       transports: userPassKey.transports,
     },
   });
 
   if (verification.verified) {
-    // TODO: UPDATE USEER COUNTER
+    // TODO: UPDATE USER COUNTER
+    console.log('build tokens');
+
+    // TODO: Get key from AWS Secrets Manager
+    const secretKey = 'somerandomkey'; // Store this securely
+    const payload = {
+      username: cookie.username,
+      role: userPassKey.role, // I set the role manually in the db
+    };
+
+    const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
 
     return {
       statusCode: 200,
       headers: {
         'Set-Cookie': `authInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
       },
-      body: `${cookie.username} has been verified`,
+      // body: `${cookie.username} has been verified`,
+      body: JSON.stringify({
+        message: `${cookie.username} has been verified`,
+        token,
+      }),
     };
   } else {
     return {

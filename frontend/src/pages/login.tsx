@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Nav from '@/components/nav/nav';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { setToken } from '@/util/token';
 
 // https://www.youtube.com/watch?v=viZs1iVsLpA&t=439s
 // https://www.youtube.com/watch?v=al5I9v5Y-kA&t=5s
@@ -85,7 +86,9 @@ async function login() {
     body: JSON.stringify(authJSON),
   });
 
-  console.log(verifyResponse);
+  const verifyResponseBody = await verifyResponse.json();
+  console.log(verifyResponseBody);
+  setToken(verifyResponseBody.token);
 }
 
 export default function Login() {
