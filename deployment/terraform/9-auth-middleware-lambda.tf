@@ -20,9 +20,30 @@ resource "aws_iam_role" "this" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "this" {
+resource "aws_iam_role_policy_attachment" "lambda" {
   role       = aws_iam_role.this.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+// TODO: can this policy be shared between 7-auth-lambda?
+resource "aws_iam_role_policy" "middeleware_secrets" {
+  role   = aws_iam_role.this.name
+  name   = "${var.app-name}-auth-middleware-${var.env}-secrets-policy"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSecretsManagerAccess",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:eu-central-1:329806435145:secret:kiikiiworld-live-hj0YBK"
+    }
+  ]
+}
+POLICY
 }
 
 resource "aws_lambda_permission" "allow_apigw_invocation_admin" {
@@ -48,11 +69,12 @@ resource "aws_lambda_function" "admin" {
   runtime = "nodejs20.x"
   handler = "auth-middleware-lambda.handler"
 
-  timeout = 3
+  timeout = 5
 
   source_code_hash = data.archive_file.this.output_base64sha256
 
   role = aws_iam_role.this.arn
+  layers = ["arn:aws:lambda:eu-central-1:187925254637:layer:AWS-Parameters-and-Secrets-Lambda-Extension:12"]
 
   environment {
     variables = {
@@ -70,11 +92,12 @@ resource "aws_lambda_function" "user" {
   runtime = "nodejs20.x"
   handler = "auth-middleware-lambda.handler"
 
-  timeout = 3
+  timeout = 5
 
   source_code_hash = data.archive_file.this.output_base64sha256
 
   role = aws_iam_role.this.arn
+  layers = ["arn:aws:lambda:eu-central-1:187925254637:layer:AWS-Parameters-and-Secrets-Lambda-Extension:12"]
 
   environment {
     variables = {

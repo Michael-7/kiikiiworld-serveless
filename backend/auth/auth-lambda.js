@@ -11,6 +11,9 @@ const tableName = 'kiikiiworld-serverless-users-prd';
 
 const client = new DynamoDBClient({ region: 'eu-central-1' });
 
+// AWS Secret Manager Url
+const SECRETS_ENDPOINT = `http://localhost:2773/secretsmanager/get?secretId=kiikiiworld-live`;
+
 // TODO
 const CLIENT_URL = 'http://localhost:3000';
 // TODO: change to api url
@@ -181,8 +184,7 @@ async function loginVerify(body, cookie) {
     // TODO: UPDATE USER COUNTER
     console.log('build tokens');
 
-    // TODO: Get key from AWS Secrets Manager
-    const secretKey = 'somerandomkey'; // Store this securely
+    const secretKey = await getSecret();
     const payload = {
       username: cookie.username,
       role: userPassKey.role, // I set the role manually in the db
@@ -270,3 +272,27 @@ function generateResponse(responseMessage, code = 200) {
     }),
   };
 }
+
+// TODO: Share this function with auth-middleware-lambda.js
+const getSecret = async () => {
+  try {
+    const response = await fetch(SECRETS_ENDPOINT, {
+      method: 'GET',
+      headers: {
+        'X-Aws-Parameters-Secrets-Token': process.env.AWS_SESSION_TOKEN,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`${errorText}`);
+    }
+
+    const data = await response.json();
+    const secretString = JSON.parse(data.SecretString);
+    return secretString.jwtSecret;
+  } catch (error) {
+    console.error('Error retrieving secret:', error);
+    throw error;
+  }
+};

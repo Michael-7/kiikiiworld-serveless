@@ -35,7 +35,8 @@ resource "aws_lambda_function" "this" {
 
   source_code_hash = data.archive_file.this.output_base64sha256
 
-  role = aws_iam_role.this.arn
+  role   = aws_iam_role.this.arn
+  layers = var.layers
 }
 
 resource "aws_cloudwatch_log_group" "this" {
