@@ -5,12 +5,16 @@ import Nav from '@/components/nav/nav';
 import Menu from '@/components/menu/menu';
 import Head from 'next/head';
 import { mapPosts, Post as PostT } from '@/types/post';
+import { useUserContext } from '@/contexts/user-context';
+import { Role } from '@/types/user';
 
 export default function Home() {
   const APIURL = process.env.APIGATEWAY;
   const MAXYEAR = 2021;
+
+  const user = useUserContext().value;
   const filter = useSearchParams()?.get('filter');
-  const admin = useSearchParams()?.get('admin');
+  const admin = user.role === Role.ADMIN;
 
   const [allPosts, setAllPosts] = useState<PostT[]>([]);
   const [year, setYear] = useState<number>(new Date().getFullYear());

@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Nav from '@/components/nav/nav';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
-import { setToken } from '@/util/token';
+import { UserContextType, useUserContext } from '@/contexts/user-context';
 
 // https://www.youtube.com/watch?v=viZs1iVsLpA&t=439s
 // https://www.youtube.com/watch?v=al5I9v5Y-kA&t=5s
@@ -9,12 +9,12 @@ import { setToken } from '@/util/token';
 // 4https://github.com/awslabs/aws-apigateway-lambda-authorizer-blueprints/blob/master/blueprints/nodejs/index.js
 
 const APIURL = process.env.APIGATEWAY;
+// TODO: Register with your own name
+const USERNAME = 'opdelop43';
 
 async function signup() {
-  const username = 'opdelop43';
-
   // 1. Get challenge from server
-  const response = await fetch(`${APIURL}/register?username=${username}`, {
+  const response = await fetch(`${APIURL}/register?username=${USERNAME}`, {
     method: 'GET',
     credentials: 'include',
   });
@@ -44,24 +44,16 @@ async function signup() {
     const verifyData = await verifyResponse.json();
 
     if (verifyData.verified) {
-      console.log(`Successfully registered ${username}`);
+      console.log(`Successfully registered ${USERNAME}`);
     }
   } catch {
     console.warn('auth key not succeeded.');
   }
-
-  // }
-
-
-  // console.log(data);
-  // console.log(data.rawId);
 }
 
-async function login() {
-  const username = 'opdelop43';
-
+async function login(userState: UserContextType) {
   // 1. Get challenge from server
-  const response = await fetch(`${APIURL}/login?username=${username}`, {
+  const response = await fetch(`${APIURL}/login?username=${USERNAME}`, {
     method: 'GET',
     credentials: 'include',
   });
@@ -88,10 +80,16 @@ async function login() {
 
   const verifyResponseBody = await verifyResponse.json();
   console.log(verifyResponseBody);
-  setToken(verifyResponseBody.token);
+  userState.setValue(verifyResponseBody.token);
+}
+
+function logout(userState: UserContextType) {
+  userState.setValue('');
 }
 
 export default function Login() {
+  const userState = useUserContext();
+
   return (
     <>
       <Head>
@@ -104,9 +102,9 @@ export default function Login() {
             <h1>Login</h1>
             <p>Insert YubiKey</p>
             <button onClick={signup}>Signup</button>
-            <button onClick={login}>Login</button>
+            <button onClick={() => login(userState)}>Login</button>
+            <button onClick={() => logout(userState)}>Logout</button>
           </div>
-
         </div>
       </main>
     </>

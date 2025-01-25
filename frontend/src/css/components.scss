@@ -10,14 +10,14 @@
     z-index: 1;
     background-color: var(--color-light);
   }
-  
+
   .post-list {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xxl);
     width: 100%;
   }
-  
+
   @media screen and (max-width: 574px) {
     .post-list {
       gap: var(--spacing-xl);
@@ -35,7 +35,7 @@
         opacity: .3;
       }
     }
-  
+
     &__content {
       max-width: 100%;
     }
@@ -54,7 +54,7 @@
       width: 100%;
       max-width: 100%;
     }
-  
+
     &__details {
       display: flex;
       flex-direction: row;
@@ -62,28 +62,28 @@
       gap: var(--spacing-md);
       margin-top: var(--spacing-sm);
     }
-  
+
     &__title {
       font-family: var(--accent-font);
       font-size: var(--font-size-sm);
     }
-  
+
     &__date {
       font-family: var(--accent-font);
       font-size: var(--font-size-sm);
       text-align: right;
     }
-  
+
     &__video {
       width: 100%;
       height: 360px;
-  
+
       @media screen and (max-width: 670px) {
         height: 52vw;
         max-height: 360px;
       }
     }
-  
+
     &__quote {
       margin-bottom: var(--spacing-sm);
     }
@@ -93,7 +93,7 @@
       font-size: 1rem;
       line-height: 1.3rem;
 
-      h1, h2, h3, h4 ,h5 ,h6 {
+      h1, h2, h3, h4, h5, h6 {
         font-family: var(--primary-font);
         margin-bottom: var(--spacing-sm);
       }
@@ -136,6 +136,9 @@
 #nav {
   .container {
     position: fixed;
+    left: 0;
+    padding: 0 var(--spacing-sm);
+    box-sizing: border-box;
     container-type: inline-size;
     container-name: nav;
     width: 100%;
@@ -144,21 +147,33 @@
     z-index: 1;
     margin: var(--spacing-sm) 0;
   }
-  
+
   .content {
     max-width: var(--content-width);
     width: 100%;
     margin: 0 auto;
     display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
     gap: var(--spacing-sm);
     font-family: var(--accent-font);
     font-weight: 800;
   }
 
-  h1 {
+  .header {
     font-size: 1.66rem;
     color: var(--color-dark);
     font-style: italic;
+    text-decoration: none;
+  }
+
+  .user {
+    a {
+      font-family: var(--accent-font);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-thin);
+      color: var(--color-text);
+    }
   }
 }
 
@@ -170,7 +185,7 @@
     display: flex;
     flex-direction: column;
     z-index: 1;
-  
+
     &__link {
       font-family: var(--accent-font);
       font-size: 1.2rem;
@@ -184,7 +199,7 @@
         color: var(--color-text-on-primary);
       }
     }
-  
+
     @media screen and (max-width: 940px) {
       display: none;
     }

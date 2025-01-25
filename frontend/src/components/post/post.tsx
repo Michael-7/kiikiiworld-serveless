@@ -1,10 +1,11 @@
-import { PostType, Post } from "@/types/post";
-import Link from "next/link";
-import Image from "next/image";
-import { marked } from "marked";
-import DOMPurify from "dompurify";
-import { useEffect, useState } from "react";
+import { Post, PostType } from '@/types/post';
+import Link from 'next/link';
+import Image from 'next/image';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import { useEffect, useState } from 'react';
 import { usePostContext } from '@/contexts/post-context';
+import { getToken } from '@/util/token';
 
 async function mdToHtml(string: string) {
   const html = await marked.parse(string);
@@ -54,23 +55,20 @@ async function getPostSpecificHtml(post: Post) {
 
 function formatDate(inputDate: string): string {
   let formatDate = new Date(inputDate);
-  return formatDate.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+  return formatDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
-export default function PostComponent({
-  post,
-  admin,
-}: {
+export default function PostComponent({ post, admin }: {
   post: Post;
   admin: boolean;
 }) {
   const APIURL = process.env.APIGATEWAY;
 
-  const [data, setData] = useState<any>("...");
+  const [data, setData] = useState<any>('...');
   const [deleted, setDeleted] = useState<boolean>(false);
   const [hidden, setHidden] = useState(post.meta.hide);
   const postState = usePostContext();
@@ -87,10 +85,12 @@ export default function PostComponent({
   async function deletePost() {
     try {
       const deletePost = fetch(
-        `${APIURL}/posts?id=${post.id}&type=${post.type}&date=${post.date}`,
-        {
-          method: "DELETE",
-        }
+        `${APIURL}/posts?id=${post.id}&type=${post.type}&date=${post.date}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': getToken(),
+          },
+        },
       );
 
       const deleted = await deletePost;
@@ -99,7 +99,7 @@ export default function PostComponent({
         setDeleted(true);
       }
     } catch (err) {
-      console.warn("u failed G");
+      console.warn('u failed G');
     }
   }
 
@@ -107,25 +107,28 @@ export default function PostComponent({
     const newPost = {
       ...post,
       meta: {
-        hide: !hidden
-      }
-    }
+        hide: !hidden,
+      },
+    };
 
     try {
       const hidePost = fetch(`${APIURL}/posts`, {
-        method: "PATCH",
+        method: 'PATCH',
+        headers: {
+          'Authorization': getToken(),
+        },
         body: JSON.stringify(newPost),
-      })
+      });
 
       const hiddenReq = await hidePost;
 
       if (hiddenReq.status === 200) {
-        console.log("success G");
+        console.log('success G');
         setHidden(!hidden);
       }
 
     } catch {
-      console.warn("u failed G");
+      console.warn('u failed G');
     }
   }
 
@@ -134,23 +137,25 @@ export default function PostComponent({
   }
 
   const getPostClasses = () => {
-    const baseClass = "post";
+    const baseClass = 'post';
     if (admin && hidden) {
       return `${baseClass} post--hide`;
     }
     return baseClass;
-  }
+  };
 
   const editPost = () => {
     postState.setValue(post);
-  }
+  };
 
   return (
     <div id="post">
       <div className={getPostClasses()}>
         {admin && (
           <div className="post__edit">
-            <Link href={{ pathname: '/post', query: {edit: true}}}><button onClick={editPost}>Edit</button></Link>
+            <Link href={{ pathname: '/post', query: { edit: true } }}>
+              <button onClick={editPost}>Edit</button>
+            </Link>
             <button onClick={deletePost}>Delete</button>
             <button onClick={hidePost}>{hidden ? 'Show' : 'Hide'}</button>
           </div>

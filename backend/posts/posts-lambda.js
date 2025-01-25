@@ -1,52 +1,52 @@
 import {
-  DynamoDBClient,
-  QueryCommand,
-  PutItemCommand,
   DeleteItemCommand,
+  DynamoDBClient,
+  PutItemCommand,
+  QueryCommand,
   UpdateItemCommand,
-} from "@aws-sdk/client-dynamodb";
+} from '@aws-sdk/client-dynamodb';
 
 // import { tableName } from "../env";
 
-const tableName = "kiikiiworld-serverless-prd";
-const feedTableName = "kiikiiworld-serverless-prd-feed";
+const tableName = 'kiikiiworld-serverless-prd';
+const feedTableName = 'kiikiiworld-serverless-prd-feed';
 
-const client = new DynamoDBClient({ region: "eu-central-1" });
+const client = new DynamoDBClient({ region: 'eu-central-1' });
 
 export const handler = async (event) => {
-  console.log("* event: ", event);
+  console.log('* event: ', event);
 
   if (
-    event.httpMethod === "GET" &&
+    event.httpMethod === 'GET' &&
     event.queryStringParameters &&
-    event.queryStringParameters["type"]
+    event.queryStringParameters['type']
   ) {
-    return await getPostByType(event.queryStringParameters["type"]);
+    return await getPostByType(event.queryStringParameters['type']);
   } else if (
-    event.httpMethod === "GET" &&
-    event.queryStringParameters["postYear"]
+    event.httpMethod === 'GET' &&
+    event.queryStringParameters['postYear']
   ) {
-    return await getPosts(event.queryStringParameters["postYear"]);
-  } else if (event.httpMethod === "POST" && event.body) {
+    return await getPosts(event.queryStringParameters['postYear']);
+  } else if (event.httpMethod === 'POST' && event.body) {
     return await putPost(event.body);
   } else if (
-    event.httpMethod === "DELETE" &&
-    event.queryStringParameters["id"] &&
-    event.queryStringParameters["type"] &&
-    event.queryStringParameters["date"]
+    event.httpMethod === 'DELETE' &&
+    event.queryStringParameters['id'] &&
+    event.queryStringParameters['type'] &&
+    event.queryStringParameters['date']
   ) {
-    deletePost(
-      event.queryStringParameters["id"],
-      event.queryStringParameters["type"],
-      event.queryStringParameters["date"]
+    return await deletePost(
+      event.queryStringParameters['id'],
+      event.queryStringParameters['type'],
+      event.queryStringParameters['date'],
     );
-  } else if (event.httpMethod === "PUT" && event.body) {
+  } else if (event.httpMethod === 'PUT' && event.body) {
     return await putPost(event.body);
-  } else if (event.httpMethod === "PATCH" && event.body) {
+  } else if (event.httpMethod === 'PATCH' && event.body) {
     return await patchPost(event.body);
   }
 
-  return generateResponse("SKIPPED");
+  return generateResponse('SKIPPED');
 };
 
 async function putPost(post) {
@@ -61,9 +61,9 @@ async function putPost(post) {
 async function getPostByType(type) {
   const queryCmd = new QueryCommand({
     TableName: tableName,
-    KeyConditionExpression: "PostType = :pk",
+    KeyConditionExpression: 'PostType = :pk',
     ExpressionAttributeValues: {
-      ":pk": {
+      ':pk': {
         S: type,
       },
     },
@@ -95,13 +95,13 @@ async function patchPost(post) {
   const patchPost = new UpdateItemCommand({
     TableName: tableName,
     Key: {
-      PostType: {S: type},
-      DateId: {S: dateId},
+      PostType: { S: type },
+      DateId: { S: dateId },
     },
-    UpdateExpression: "set Content = :body",
+    UpdateExpression: 'set Content = :body',
     ExpressionAttributeValues: {
-      ":body": { S: JSON.stringify(postContent) },
-    }
+      ':body': { S: JSON.stringify(postContent) },
+    },
   });
 
   return await sendCommand(patchPost);
@@ -111,9 +111,9 @@ async function getPosts(year) {
   const queryCmd = new QueryCommand({
     TableName: tableName,
     IndexName: feedTableName,
-    KeyConditionExpression: "PostYear = :pk",
+    KeyConditionExpression: 'PostYear = :pk',
     ExpressionAttributeValues: {
-      ":pk": {
+      ':pk': {
         S: year,
       },
     },
@@ -151,7 +151,7 @@ async function sendCommand(command) {
     const results = await client.send(command);
     return generateResponse(results);
   } catch (err) {
-    console.log("error", err);
+    console.log('error', err);
     return generateResponse(err);
   }
 }
@@ -160,7 +160,7 @@ function generateResponse(responseMessage) {
   return {
     statusCode: 200,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       message: responseMessage,

@@ -122,6 +122,9 @@ export default function Post() {
     if (editMode) {
       response = await fetch(`${APIURL}/posts`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': getToken(),
+        },
         body: JSON.stringify(generatePost(data, images, postState.meta)),
       });
     } else {
