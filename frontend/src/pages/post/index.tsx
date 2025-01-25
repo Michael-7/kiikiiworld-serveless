@@ -21,7 +21,7 @@ export default function Post() {
   const [editMode, setEditMode] = useState<boolean>(useSearchParams()?.get('edit') === 'true' && postState.id != '');
 
 
-  const { register, handleSubmit, watch, formState, setValue, reset } =
+  const { register, handleSubmit, watch, setValue, reset } =
     useForm<PostForm>();
 
   useEffect(() => {

@@ -93,7 +93,7 @@ async function registerVerify(body, cookie) {
       throw new Error('something went wrong');
     }
 
-    let user = await createUser(cookie.userName, {
+    await createUser(cookie.userName, {
       role: 'USER',
       id: verification.registrationInfo.credential.id,
       publicKey: verification.registrationInfo.credential.publicKey,

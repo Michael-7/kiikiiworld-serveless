@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html
 
-export const handler = async (event, context, callback) => {
+export const handler = async (event, context) => {
   console.log('Received event:', JSON.stringify(event));
 
   const token = event.headers.authorization; // Get the token from the request
