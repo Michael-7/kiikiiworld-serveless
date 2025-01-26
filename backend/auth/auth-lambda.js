@@ -96,6 +96,11 @@ async function registerVerify(body, cookie) {
       throw new Error('something went wrong');
     }
 
+    const user = await getUser(cookie.userName);
+    if (user) {
+      throw new Error('User already exists');
+    }
+
     await createUser(cookie.userName, {
       role: 'USER',
       id: verification.registrationInfo.credential.id,
@@ -242,7 +247,11 @@ async function getUser(username) {
   });
 
   const user = await sendCommand(queryCmd);
-  return JSON.parse(user.Items[0].Data.S);
+  if (user.Count === 0) {
+    return undefined;
+  } else {
+    return JSON.parse(user.Items[0].Data.S);
+  }
 }
 
 async function sendCommand(command) {

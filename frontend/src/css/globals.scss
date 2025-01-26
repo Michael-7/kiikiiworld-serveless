@@ -9,6 +9,7 @@
   --color-primary-2: #00ffd0;
   --color-text: var(--color-dark);
   --color-text-on-primary: var(--color-dark);
+  --color-red: #ef4d1b;
 
   --color-primary-2-rgb: 0, 255, 208;
 
@@ -82,7 +83,7 @@ body {
 .app {
   position: relative;
   padding: var(--spacing-sm);
-  
+
   &::after {
     content: '';
     position: absolute;
