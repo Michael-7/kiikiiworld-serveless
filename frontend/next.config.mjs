@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 export default {
-  output: "export",
+  output: 'export',
   env: {
     APIGATEWAY: process.env.APIGATEWAY, // pulls from .env file
   },
   images: {
     unoptimized: true,
   },
+  trailingSlash: true,
   webpack: (config) => {
     return config;
   },

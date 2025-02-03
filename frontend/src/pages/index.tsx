@@ -10,7 +10,7 @@ import { Role } from '@/types/user';
 
 export default function Home() {
   const APIURL = process.env.APIGATEWAY;
-  const MAXYEAR = 2021;
+  const MAXYEAR = 2016;
 
   const user = useUserContext().value;
   const filter = useSearchParams()?.get('filter');

@@ -47,7 +47,8 @@ async function getPostSpecificHtml(post: Post) {
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         ></iframe>
-      );
+      )
+        ;
     case PostType.STORY:
       return await mdToHtml(post.body as string);
   }

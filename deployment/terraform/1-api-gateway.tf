@@ -4,7 +4,7 @@ resource "aws_apigatewayv2_api" "this" {
 
   // TODO: Lock this down when i have a url
   cors_configuration {
-    allow_origins = ["http://localhost:3000"]
+    allow_origins = ["http://localhost:3000", "https://www.kiikiiworld.com", "https://kiikiiworld.com"]
     allow_methods = ["POST", "GET", "OPTIONS", "DELETE", "PATCH"]
     allow_headers = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key", "X-Amz-Security-Token"]
     expose_headers = ["Content-Type", "Authorization"]

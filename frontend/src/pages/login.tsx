@@ -11,8 +11,6 @@ import { useEffect, useState } from 'react';
 // 4https://github.com/awslabs/aws-apigateway-lambda-authorizer-blueprints/blob/master/blueprints/nodejs/index.js
 
 const APIURL = process.env.APIGATEWAY;
-// TODO: Register with your own name
-// const USERNAME = 'opdelop43';
 
 async function signup(username: string, setError: (param: string) => void, setSuccess: (param: string) => void) {
   let options;
@@ -141,7 +139,7 @@ export default function Login() {
       <main id="login">
         <div className="login">
           <h2>WebAuthn Login</h2>
-          <p>Currently a user can only have one FIDO2 key attached to her or his account. We're working out a complete
+          <p>Currently a user can only have one FIDO2 key attached to her or his account. We are working out a complete
             WebAuthn implementation.</p>
           <div className="login__form-wrapper">
             <div className={`login__form ${loading ? 'login__form--loading' : ''}`}>

@@ -15,56 +15,65 @@ const client = new DynamoDBClient({ region: 'eu-central-1' });
 const SECRETS_ENDPOINT = `http://localhost:2773/secretsmanager/get?secretId=kiikiiworld-live`;
 
 // TODO
-const CLIENT_URL = 'http://localhost:3000';
-// TODO: change to api url
-const RP_ID = 'localhost';
+// const CLIENT_URL = 'http://localhost:3000';
+// const RP_ID = 'localhost';
 
+const CLIENT_URL = ['https://kiikiiworld.com', 'https://www.kiikiiworld.com'];
+const RP_ID = ['kiikiiworld.com', 'www.kiikiiworld.com'];
 
 export const handler = async (event) => {
   console.log('* event: ', event);
+
+  const domain = event.headers.origin.split('//')[1];
 
   if (
     event.httpMethod === 'GET' &&
     event.resource === '/register'
   ) {
     const username = event.queryStringParameters['username'];
-    return await register(username);
+    console.log(` - CREATE /REGISTER :: ${username} ----------------------------------------------------------`);
+    return await register(username, domain);
   } else if (
     event.httpMethod === 'POST' &&
     event.resource === '/register'
   ) {
+    console.log(` - CONFIRM /REGISTER ----------------------------------------------------------`);
     const getCookieContent = getCookie('regInfo', event.headers['Cookie']);
+    console.log(` - CONFIRM /REGISTER :: ${getCookieContent.username} ----------------------------------------------------------`);
     return await registerVerify(JSON.parse(event.body), getCookieContent);
   } else if (
     event.httpMethod === 'GET' &&
     event.resource === '/login'
   ) {
-    return await login(event.queryStringParameters['username']);
+    console.log(` - CREATE /LOGIN :: ${event.queryStringParameters['username']} ----------------------------------------------------------`);
+    return await login(event.queryStringParameters['username'], domain);
   } else if (
     event.httpMethod === 'POST' &&
     event.resource === '/login'
   ) {
     const getCookieContent = getCookie('authInfo', event.headers['Cookie']);
+    console.log(JSON.stringify(getCookieContent));
+    console.log(` - CONFIRM /LOGIN :: ${getCookieContent.username} ----------------------------------------------------------`);
     return await loginVerify(JSON.parse(event.body), getCookieContent);
   }
 
   return generateResponse('SKIPPED');
 };
 
-async function register(username) {
+async function register(username, domain) {
   if (!username) {
     return generateResponse('Username is required', 400);
   }
 
   const options = await generateRegistrationOptions({
-    rpID: RP_ID,
+    rpID: domain,
     rpName: 'kiikii world',
     userName: username,
   });
 
   const cookieJson = encodeURIComponent(JSON.stringify({
     userId: options.user.id,
-    userName: username,
+    username,
     challenge: options.challenge,
   }));
 
@@ -85,6 +94,8 @@ async function registerVerify(body, cookie) {
   }
 
   try {
+    console.log('COOKIE: ', cookie);
+
     const verification = await verifyRegistrationResponse({
       response: body,
       expectedChallenge: cookie.challenge,
@@ -96,19 +107,23 @@ async function registerVerify(body, cookie) {
       throw new Error('something went wrong');
     }
 
-    const user = await getUser(cookie.userName);
+    const user = await getUser(cookie.username);
     if (user) {
       throw new Error('User already exists');
     }
 
-    await createUser(cookie.userName, {
+    await createUser(cookie.username, {
       role: 'USER',
-      id: verification.registrationInfo.credential.id,
-      publicKey: verification.registrationInfo.credential.publicKey,
-      counter: verification.registrationInfo.credential.counter,
-      deviceType: verification.registrationInfo.credentialDeviceType,
-      backedUp: verification.registrationInfo.credentialBackedUp,
-      transports: body.response.transports,
+      keys: [
+        {
+          id: verification.registrationInfo.credential.id,
+          publicKey: verification.registrationInfo.credential.publicKey,
+          counter: verification.registrationInfo.credential.counter,
+          deviceType: verification.registrationInfo.credentialDeviceType,
+          backedUp: verification.registrationInfo.credentialBackedUp,
+          transports: body.response.transports,
+        },
+      ],
     });
 
     return {
@@ -116,9 +131,10 @@ async function registerVerify(body, cookie) {
       headers: {
         'Set-Cookie': `regInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
       },
-      body: `${cookie.userName} has been verified`,
+      body: `${cookie.username} has been verified`,
     };
-  } catch {
+  } catch (error) {
+    console.log(error);
     return {
       statusCode: 400,
       headers: {
@@ -129,23 +145,21 @@ async function registerVerify(body, cookie) {
   }
 }
 
-async function login(username) {
+async function login(username, domain) {
   // GET USER BY USERNAME
   const userPassKey = await getUser(username);
 
   const options = await generateAuthenticationOptions({
-    rpID: RP_ID,
-    allowCredentials: [
-      {
-        id: userPassKey.id,
-        type: 'public-key',
-        transport: userPassKey.transports,
-      },
-    ],
+    rpID: domain,
+    allowCredentials: userPassKey.keys.map(passkey => ({
+      id: passkey.id,
+      type: 'public-key',
+      transport: passkey.transports,
+    })),
   });
 
   const authJson = encodeURIComponent(JSON.stringify({
-    userId: userPassKey.id,
+    // userId: userPassKey.keys[0].id,
     username: username,
     challenge: options.challenge,
   }));
@@ -168,7 +182,9 @@ async function loginVerify(body, cookie) {
 
   console.log('get user');
   // GET USER BY USERNAME
-  const userPassKey = await getUser(cookie.username);
+  const user = await getUser(cookie.username);
+  const userPassKey = user.keys.find(key => key.id === body.id);
+  console.log('Passkey: ', userPassKey);
 
   console.log('get verification');
   const publicKey = new Uint8Array(Object.values(userPassKey.publicKey));
@@ -192,7 +208,7 @@ async function loginVerify(body, cookie) {
     const secretKey = await getSecret();
     const payload = {
       username: cookie.username,
-      role: userPassKey.role, // I set the role manually in the db
+      role: user.role, // I set the role manually in the db
     };
 
     const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
@@ -263,8 +279,12 @@ async function sendCommand(command) {
 }
 
 function getCookie(id, cookie) {
+  console.log('--------------------------  COoKEI ------------');
+  console.log(cookie);
   const returnCookieArray = cookie.split(';');
+  console.log(returnCookieArray);
   const returnCookieFull = returnCookieArray.find(cook => cook.split('=')[0].includes(id));
+  console.log(returnCookieFull);
   const returnCookie = returnCookieFull.split('=')[1];
 
   return JSON.parse(decodeURIComponent(returnCookie));
