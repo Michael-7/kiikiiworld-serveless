@@ -211,7 +211,7 @@ async function loginVerify(body, cookie) {
       role: user.role, // I set the role manually in the db
     };
 
-    const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+    const token = jwt.sign(payload, secretKey, { expiresIn: '12h' });
 
     return {
       statusCode: 200,
