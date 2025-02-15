@@ -138,10 +138,9 @@ export default function PostComponent({ post, admin }: {
   }
 
   const getPostClasses = () => {
-    const baseClass = 'post';
-    if (admin && hidden) {
-      return `${baseClass} post--hide`;
-    }
+    let baseClass = 'post';
+    if (admin) baseClass = `${baseClass} post--admin`;
+    if (admin && hidden) baseClass = `${baseClass} post--hide`;
     return baseClass;
   };
 

@@ -36,17 +36,30 @@
       }
     }
 
+    &--admin {
+      @media screen and (max-width: 940px) {
+        margin-bottom: var(--spacing-lg);
+      }
+    }
+
     &__content {
       max-width: 100%;
     }
 
     &__edit {
       position: absolute;
+      display: flex;
+      gap: var(--spacing-sm);
       right: -100px;
       top: 0;
-      display: flex;
       flex-direction: column;
-      gap: var(--spacing-sm);
+
+      @media screen and (max-width: 940px) {
+        right: auto;
+        top: auto;
+        bottom: -25px;
+        flex-direction: row;
+      }
     }
 
     &__image {
