@@ -89,21 +89,52 @@
     }
 
     &__markdown {
-      font-family: var(--primary-font);
-      font-size: 1rem;
-      line-height: 1.3rem;
-
-      h1, h2, h3, h4, h5, h6 {
+      p, h1, h2, h3, h4, h5, h6, li, ul, ol, table {
         font-family: var(--primary-font);
-        margin-bottom: var(--spacing-sm);
+        font-weight: 500;
       }
 
-      ul, ol {
+      h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+        margin-bottom: var(--spacing-md);
+      }
+
+      h6 {
+        font-size: 3em;
+      }
+
+      p, a, span, li {
+        font-size: 1rem;
+        line-height: 1.25rem;
         margin: var(--spacing-sm) 0;
       }
 
+      li {
+        margin: var(--spacing-xs) var(--spacing-md);
+      }
+
+      ul, ol {
+        margin: var(--spacing-md) 0;
+      }
+
       a {
-        color: var(--color-primary);
+        font-family: var(--primary-font);
+        text-decoration: underline;
+        font-weight: 500;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        a {
+          color: var(--color-primary);
+        }
+      }
+
+      @media (prefers-color-scheme: light) {
+        a {
+          color: var(--color-text-on-primary);
+          background-color: var(--color-primary);
+          padding: 0 var(--spacing-xsm);
+        }
       }
 
       strong {
@@ -128,6 +159,27 @@
       code {
         font-family: var(--accent-font);
         font-size: var(--font-size-sm);
+        font-weight: 400;
+      }
+
+      hr {
+        outline: none;
+        border: none;
+        height: 2px;
+        background-color: var(--color-grey-light);
+        margin: var(--spacing-md) 0;
+      }
+
+      img {
+        max-width: 100%;
+      }
+
+      pre {
+        background-color: var(--color-grey-light);
+      }
+
+      blockquote {
+        background-color: var(--color-grey-light);
       }
     }
   }
