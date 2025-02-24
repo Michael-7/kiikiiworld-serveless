@@ -16,7 +16,13 @@ export function getDecodedToken(): User | undefined {
     const token = localStorage.getItem(tokenKey);
 
     if (token) {
-      return jwtDecode<User>(token);
+      const decodedToken = jwtDecode<User>(token);
+      if (decodedToken.exp < Date.now() / 1000) {
+        localStorage.removeItem(tokenKey);
+        return undefined;
+      }
+
+      return decodedToken;
     }
   }
 }
