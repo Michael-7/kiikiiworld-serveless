@@ -6,6 +6,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { usePostContext } from '@/contexts/post-context';
 import { useSearchParams } from 'next/navigation';
 import { getToken } from '@/util/token';
+import { mdToHtml } from '@/components/post/post';
 
 // https://react-hook-form.com/get-started
 
@@ -19,10 +20,14 @@ export default function Post() {
   const [loadingImg, setLoadingImg] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
   const [editMode, setEditMode] = useState<boolean>(useSearchParams()?.get('edit') === 'true' && postState.id != '');
+  const [previewText, setPreviewText] = useState<any>(<div></div>);
 
 
   const { register, handleSubmit, watch, setValue, reset } =
     useForm<PostForm>();
+
+  const previewTxt = watch('body');
+  const postType = watch('type');
 
   useEffect(() => {
     if (editMode) {
@@ -54,7 +59,7 @@ export default function Post() {
 
   const watchImage = watch('image');
 
-  // --- IMAGE UPLOADING BLOC ---
+  // ---------- IMAGE UPLOADING BLOC ----------
   useEffect(() => {
     const handleFileChange = async (file: File) => {
       try {
@@ -113,7 +118,7 @@ export default function Post() {
     }
   }, [watchImage, APIURL, images, setValue]);
 
-  // --- POST SUBMIT BLOC ---
+  // ---------- POST SUBMIT BLOC ----------
   const onSubmitPost: SubmitHandler<PostForm> = async (data) => {
     setLoading(true);
 
@@ -158,6 +163,19 @@ export default function Post() {
     setEditMode(false);
     setImages([]);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const markdown = await mdToHtml(previewTxt);
+        setPreviewText(markdown);
+      } catch (error) {
+        setPreviewText(<p>Can't process this text to mardown.</p>);
+      }
+    };
+
+    fetchData();
+  }, [previewTxt]);
 
   return (
     <>
@@ -218,8 +236,8 @@ export default function Post() {
                 {...register('title', { required: true })}
               />
             </label>
-            {(watch('type') === PostType.QUOTE ||
-              watch('type') === PostType.STORY) && (
+            {(postType === PostType.QUOTE ||
+              postType === PostType.STORY) && (
               <label className="input">
                 <span className="input__label">body</span>
                 <textarea
@@ -230,7 +248,7 @@ export default function Post() {
                 />
               </label>
             )}
-            {watch('type') === PostType.IMAGE && (
+            {postType === PostType.IMAGE && (
               <>
                 <label className="input">
                   <span className="input__label">file</span>
@@ -245,7 +263,7 @@ export default function Post() {
                 {loadingImg && <p>uploading...</p>}
               </>
             )}
-            {watch('type') === PostType.VIDEO && (
+            {postType === PostType.VIDEO && (
               <label className="input">
                 <span className="input__label">url</span>
                 <input
@@ -270,6 +288,11 @@ export default function Post() {
                 />
               ))}
             </div>
+            {(postType === PostType.QUOTE || postType === PostType.STORY) &&
+              <div id="post" className="post__markdown">
+                {previewText}
+              </div>
+            }
           </form>
         </div>
       </main>

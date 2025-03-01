@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { usePostContext } from '@/contexts/post-context';
 import { getToken } from '@/util/token';
 
-async function mdToHtml(string: string) {
+export async function mdToHtml(string: string) {
   const html = await marked.parse(string);
   const sanitizedHtml = DOMPurify.sanitize(html);
   return (
