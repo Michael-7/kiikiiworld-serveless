@@ -28,6 +28,7 @@ export default function Post() {
 
   const previewTxt = watch('body');
   const postType = watch('type');
+  const watchImage = watch('image');
 
   useEffect(() => {
     if (editMode) {
@@ -56,8 +57,6 @@ export default function Post() {
       setValue('id', crypto.randomUUID());
     }
   }, [setValue, editMode, postState]);
-
-  const watchImage = watch('image');
 
   // ---------- IMAGE UPLOADING BLOC ----------
   useEffect(() => {
@@ -113,7 +112,8 @@ export default function Post() {
       if (watchImage[0].size < 5242880) {
         handleFileChange(watchImage[0]);
       } else {
-        console.warn('file too big');
+        console.error('!!!! file too big !!!!');
+        setResult('🚫 file too big');
       }
     }
   }, [watchImage, APIURL, images, setValue]);
@@ -170,7 +170,7 @@ export default function Post() {
         const markdown = await mdToHtml(previewTxt);
         setPreviewText(markdown);
       } catch (error) {
-        setPreviewText(<p>Can't process this text to mardown.</p>);
+        setPreviewText(<p>Cannot process this text to mardown.</p>);
       }
     };
 
