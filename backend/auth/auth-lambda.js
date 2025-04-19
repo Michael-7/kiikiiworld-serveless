@@ -81,8 +81,7 @@ async function register(username, domain) {
     statusCode: 200,
     headers: {
       'Content-Type': 'application/json',
-      // TODO: 'Set-Cookie': `regInfo=${cookieJson}; HttpOnly; Max-Age=600000; Secure; Path=/; SameSite=Lax`, //Path=/; SameSite=Strict
-      'Set-Cookie': `regInfo=${cookieJson}; HttpOnly; Max-Age=60000; Path=/; Secure; SameSite=None`,
+      'Set-Cookie': `regInfo=${cookieJson}; HttpOnly; Max-Age=600000; Secure; Path=/; SameSite=Strict`,
     },
     body: JSON.stringify(options),
   };
@@ -129,7 +128,7 @@ async function registerVerify(body, cookie) {
     return {
       statusCode: 200,
       headers: {
-        'Set-Cookie': `regInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
+        'Set-Cookie': `regInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=Strict`,
       },
       body: `${cookie.username} has been verified`,
     };
@@ -138,7 +137,7 @@ async function registerVerify(body, cookie) {
     return {
       statusCode: 400,
       headers: {
-        'Set-Cookie': `regInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
+        'Set-Cookie': `regInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=Strict`,
       },
       body: `Looks like something went wrong...`,
     };
@@ -168,8 +167,7 @@ async function login(username, domain) {
     statusCode: 200,
     headers: {
       'Content-Type': 'application/json',
-      // TODO: LOCKDOWN
-      'Set-Cookie': `authInfo=${authJson}; HttpOnly; Max-Age=60000; Path=/; Secure; SameSite=None`,
+      'Set-Cookie': `authInfo=${authJson}; HttpOnly; Max-Age=60000; Path=/; Secure; SameSite=Strict`,
     },
     body: JSON.stringify(options),
   };
@@ -216,7 +214,7 @@ async function loginVerify(body, cookie) {
     return {
       statusCode: 200,
       headers: {
-        'Set-Cookie': `authInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
+        'Set-Cookie': `authInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=Strict`,
       },
       // body: `${cookie.username} has been verified`,
       body: JSON.stringify({
@@ -228,7 +226,7 @@ async function loginVerify(body, cookie) {
     return {
       statusCode: 400,
       headers: {
-        'Set-Cookie': `authInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=None`,
+        'Set-Cookie': `authInfo=deleted; HttpOnly; expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; Secure; SameSite=Strict`,
       },
       body: `Login failed`,
     };
