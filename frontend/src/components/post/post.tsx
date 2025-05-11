@@ -6,6 +6,7 @@ import DOMPurify from 'dompurify';
 import { useEffect, useState } from 'react';
 import { usePostContext } from '@/contexts/post-context';
 import { getToken } from '@/util/token';
+import { CookieContextType, useCookieContext } from '@/contexts/cookie-context';
 
 export async function mdToHtml(string: string) {
   const html = await marked.parse(string);
@@ -18,7 +19,7 @@ export async function mdToHtml(string: string) {
   );
 }
 
-async function getPostSpecificHtml(post: Post) {
+async function getPostSpecificHtml(post: Post, cookie: CookieContextType) {
   switch (post.type) {
     case PostType.IMAGE:
       if (post.body) {
@@ -37,8 +38,8 @@ async function getPostSpecificHtml(post: Post) {
     case PostType.QUOTE:
       return await mdToHtml(post.body as string);
     case PostType.VIDEO:
-      return (
-        <iframe
+      if (cookie.cookie === 'accept') {
+        return (<iframe
           className="post__video"
           src={post.body}
           title="YouTube video player"
@@ -46,9 +47,27 @@ async function getPostSpecificHtml(post: Post) {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
-        ></iframe>
-      )
-        ;
+        ></iframe>);
+      } else {
+        return (
+          <div className="post__video-wrapper">
+            <div className={`post__video-inner ${cookie.cookie === 'decline' ? 'dark' : 'l'}`}
+                 onClick={() => cookie.showCookiePopup()}>
+              {cookie.cookie === 'decline' &&
+                <p className="post__video-declined">U made a promise not to indulge in the algorithm.. remember?</p>}
+            </div>
+            <iframe
+              className="post__video"
+              src={post.body}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            ></iframe>
+          </div>
+        );
+      }
     case PostType.STORY:
       return await mdToHtml(post.body as string);
   }
@@ -73,15 +92,16 @@ export default function PostComponent({ post, admin }: {
   const [deleted, setDeleted] = useState<boolean>(false);
   const [hidden, setHidden] = useState(post.meta.hide);
   const postState = usePostContext();
+  const cookieSate = useCookieContext();
 
   useEffect(() => {
     async function getBody(post: Post) {
-      const dataata = await getPostSpecificHtml(post);
+      const dataata = await getPostSpecificHtml(post, cookieSate);
       setData(dataata);
     }
 
     getBody(post);
-  }, [post]);
+  }, [post, cookieSate]);
 
   async function deletePost() {
     try {
