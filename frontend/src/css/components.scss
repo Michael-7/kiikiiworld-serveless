@@ -520,9 +520,11 @@
     padding: var(--spacing-lg);
 
     &__text {
+      color: var(--color-text);
       font-family: var(--accent-font);
       font-size: var(--font-size-sm);
       line-height: 1.25rem;
+      margin-bottom: var(--spacing-sm);
     }
 
     &__button-group {
